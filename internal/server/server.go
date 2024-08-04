@@ -3,7 +3,9 @@ package server
 import (
 	"net/http"
 
-	"github.com/celestialdragonfly/betterreads-platform/internal/contract"
+	"github.com/celestialdragonfly/betterreads-platform/internal/contracts"
+	"github.com/celestialdragonfly/betterreads-platform/internal/data"
+	"github.com/celestialdragonfly/betterreads-platform/internal/dependency/google"
 	"github.com/celestialdragonfly/betterreads-platform/internal/package/json"
 	"github.com/celestialdragonfly/betterreads-platform/internal/package/log"
 	"github.com/julienschmidt/httprouter"
@@ -16,22 +18,25 @@ type Config struct {
 }
 
 type BetterReads struct {
-	config  *Config
-	logger  *log.Logger
-	Handler http.Handler
+	config        *Config
+	logger        *log.Logger
+	DB            *data.SQL
+	Handler       http.Handler
+	GoogleBookAPI *google.BookAPI
 }
 
-func NewBetterReads(l *log.Logger, cfg *Config) *BetterReads {
+func NewBetterReads(l *log.Logger, database *data.SQL, bookAPI *google.BookAPI, cfg *Config) *BetterReads {
 	br := &BetterReads{
-		logger: l,
-		config: cfg,
+		logger:        l,
+		DB:            database,
+		GoogleBookAPI: bookAPI,
+		config:        cfg,
 	}
 	br.Handler = routes(br)
 	return br
 }
 
 func routes(br *BetterReads) http.Handler {
-	// Initialize a new httprouter router instance.
 	router := httprouter.New()
 
 	// Health Check
@@ -40,6 +45,9 @@ func routes(br *BetterReads) http.Handler {
 	// User Management
 	router.HandlerFunc(http.MethodPost, "/api/v1/users", br.CreateUserHandler)
 	router.HandlerFunc(http.MethodGet, "/api/v1/users/:userid", br.GetUserHandler)
+
+	// Book Management
+	router.HandlerFunc(http.MethodGet, "/api/v1/books/:query", br.GetBooks)
 
 	return router
 }
@@ -55,28 +63,30 @@ func (br *BetterReads) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	br.unimplemented(w, r)
 }
 
+func (br *BetterReads) GetBooks(w http.ResponseWriter, r *http.Request) {
+	params := httprouter.ParamsFromContext(r.Context())
+
+	br.GoogleBookAPI.GetBooks(params.ByName("query"))
+}
+
 // HEALTHCHECK-API
 // HealthCheckHandler
 func (br *BetterReads) HealthcheckHandler(w http.ResponseWriter, r *http.Request) {
-	resp := contract.HealthCheckResponse{
+	resp := contracts.HealthCheckResponse{
 		Status:      "available",
 		Environment: br.config.Env,
 		Version:     br.config.Version,
 	}
 
-	err := json.WriteJSON(w, http.StatusOK, resp, nil)
+	err := json.Marshal(w, http.StatusOK, resp, nil)
 	if err != nil {
-		// TODO remove this log
-		br.logger.Error(err.Error(), nil)
 		http.Error(w, "The server encountered a problem and could not process your request", http.StatusInternalServerError)
 	}
 }
 
 func (br *BetterReads) unimplemented(w http.ResponseWriter, r *http.Request) {
-	err := json.WriteJSON(w, http.StatusNotImplemented, struct{ Message string }{Message: "method not implemented"}, nil)
+	err := json.Marshal(w, http.StatusNotImplemented, struct{ Message string }{Message: "method not implemented"}, nil)
 	if err != nil {
-		// TODO remove this log
-		br.logger.Error(err.Error(), nil)
 		http.Error(w, "The server encountered a problem and could not process your request", http.StatusInternalServerError)
 	}
 }

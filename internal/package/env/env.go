@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 )
 
 // String returns a string that is populated by the environment variable or given a default value.
@@ -46,4 +47,17 @@ func Bool(key string, defaultValue bool, description string) bool {
 	}
 
 	return value
+}
+
+func Duration(key string, defaultValue time.Duration, description string) time.Duration {
+	valueString, ok := os.LookupEnv(key)
+	if !ok {
+		return defaultValue
+	}
+	duration, err := time.ParseDuration(valueString)
+	if err != nil {
+		fmt.Printf("Environment variable %s is of invalid type. Value: %s.\n", key, valueString)
+		return defaultValue
+	}
+	return duration
 }
