@@ -32,7 +32,7 @@ func run(ctx context.Context, w io.Writer, args []string) error {
 		googleBookAPIKey = env.String("GOOGLE_BOOK_API_KEY", "", "API Key for the Google Books dependency.")
 
 		// Database Envs
-		databaseDSN                = env.String("DATABASE_DSN", "", "PostgreSQL DSN")
+		databaseDSN                = env.String("DATABASE_DSN", "", "PostgreSQL DSN") // split this out into database name + password envs.
 		databaseTimeout            = env.Duration("DATABASE_TIMEOUT", 5*time.Second, "Create a context with a 5-second timeout deadline.")
 		databaseMaxOpenConnections = env.Int("DATABASE_MAX_OPEN_CONNECTIONS", 25, "PostgreSQL max open connections")
 		databaseMaxIdleConnections = env.Int("DATABASE_MAX_IDLE_CONNECTIONS", 25, "PostgreSQL max idle connections")

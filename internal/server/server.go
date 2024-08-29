@@ -47,7 +47,13 @@ func routes(br *BetterReads) http.Handler {
 	router.HandlerFunc(http.MethodGet, "/api/v1/users/:userid", br.GetUserHandler)
 
 	// Book Management
-	router.HandlerFunc(http.MethodGet, "/api/v1/books/:query", br.GetBooks)
+	router.HandlerFunc(http.MethodGet, "/api/v1/books/search", br.GetGoogleBooks)                              // Query google books api for all books matching search param.
+	router.HandlerFunc(http.MethodGet, "/api/v1/books/library", br.GetBooksForUser)                            // Get all books from a user's library.
+	router.HandlerFunc(http.MethodGet, "/api/v1/books/library/:bookid", br.GetBookForUser)                     // Retrieves a signle book the user's library given the book id.
+	router.HandlerFunc(http.MethodDelete, "/api/v1/books/library/:bookid", br.RemoveBookForUser)               // Remove a book from a user's library given the book id.
+	router.HandlerFunc(http.MethodPost, "/api/v1/books/library/:bookid/read", br.AddBookToReadForUser)         // Add book to read list.
+	router.HandlerFunc(http.MethodPost, "/api/v1/books/library/:bookid/reading", br.AddBookToReadingForUser)   // Add book to reading list.
+	router.HandlerFunc(http.MethodPost, "/api/v1/books/library/:bookid/wishlist", br.AddBookToWishlistForUser) // Add book to want to read list.
 
 	return router
 }
@@ -63,10 +69,71 @@ func (br *BetterReads) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	br.unimplemented(w, r)
 }
 
-func (br *BetterReads) GetBooks(w http.ResponseWriter, r *http.Request) {
-	params := httprouter.ParamsFromContext(r.Context())
+// BOOKS-API
+// GetGoogleBooks query google books api for all books matching search param.
+func (br *BetterReads) GetGoogleBooks(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	wildcard := query.Get("q")
 
-	br.GoogleBookAPI.GetBooks(params.ByName("query"))
+	booksResponse, err := br.GoogleBookAPI.GetBooks(br.logger, wildcard)
+	if err != nil {
+		json.Response(w, http.StatusInternalServerError, contracts.NewErrorResponse(err.Error()), nil)
+	}
+
+	books := make([]contracts.GoogleBook, 0)
+	for _, item := range booksResponse.Items {
+		book := contracts.GoogleBook{
+			ID:             item.ID,
+			Etag:           item.Etag,
+			SelfLink:       item.SelfLink,
+			Title:          item.VolumeInfo.Title,
+			Subtitle:       item.VolumeInfo.Subtitle,
+			Authors:        item.VolumeInfo.Authors,
+			Categories:     item.VolumeInfo.Categories,
+			AverageRating:  item.VolumeInfo.AverageRating,
+			RatingsCount:   item.VolumeInfo.RatingsCount,
+			MaturityRating: item.VolumeInfo.MaturityRating,
+			SmallThumbnail: item.VolumeInfo.ImageLinks.SmallThumbnail,
+			Thumbnail:      item.VolumeInfo.ImageLinks.Thumbnail,
+			PreviewLink:    item.VolumeInfo.PreviewLink,
+			InfoLink:       item.VolumeInfo.InfoLink,
+		}
+		books = append(books, book)
+	}
+
+	json.Response(w, http.StatusOK, contracts.GetBooksResponse{Books: books}, nil)
+}
+
+// GetBooksForUser retrieves all books from a user's library.
+func (br *BetterReads) GetBooksForUser(w http.ResponseWriter, r *http.Request) {
+	br.unimplemented(w, r)
+
+	json.Response(w, http.StatusOK, contracts.GetBooksForUserResponse{}, nil)
+}
+
+// GetBookForUser retrieves a signle book the user's library given the book id.
+func (br *BetterReads) GetBookForUser(w http.ResponseWriter, r *http.Request) {
+	br.unimplemented(w, r)
+}
+
+// RemoveBookForUser removes a book from a user's library given the book id.
+func (br *BetterReads) RemoveBookForUser(w http.ResponseWriter, r *http.Request) {
+	br.unimplemented(w, r)
+}
+
+// AddBookToReadForUser updates the category type for a book in a user's library to "read".
+func (br *BetterReads) AddBookToReadForUser(w http.ResponseWriter, r *http.Request) {
+	br.unimplemented(w, r)
+}
+
+// AddBookToReadingForUser updates the category type for a book in a user's library to "reading".
+func (br *BetterReads) AddBookToReadingForUser(w http.ResponseWriter, r *http.Request) {
+	br.unimplemented(w, r)
+}
+
+// AddBookToWishlistForUser updates the category type for a book in a user's library to "want to read/wishlist".
+func (br *BetterReads) AddBookToWishlistForUser(w http.ResponseWriter, r *http.Request) {
+	br.unimplemented(w, r)
 }
 
 // HEALTHCHECK-API
@@ -78,15 +145,10 @@ func (br *BetterReads) HealthcheckHandler(w http.ResponseWriter, r *http.Request
 		Version:     br.config.Version,
 	}
 
-	err := json.Marshal(w, http.StatusOK, resp, nil)
-	if err != nil {
-		http.Error(w, "The server encountered a problem and could not process your request", http.StatusInternalServerError)
-	}
+	json.Response(w, http.StatusOK, resp, nil)
+
 }
 
 func (br *BetterReads) unimplemented(w http.ResponseWriter, r *http.Request) {
-	err := json.Marshal(w, http.StatusNotImplemented, struct{ Message string }{Message: "method not implemented"}, nil)
-	if err != nil {
-		http.Error(w, "The server encountered a problem and could not process your request", http.StatusInternalServerError)
-	}
+	json.Response(w, http.StatusNotImplemented, struct{ Message string }{Message: "method not implemented"}, nil)
 }

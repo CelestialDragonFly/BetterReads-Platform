@@ -9,12 +9,12 @@ import (
 	"strings"
 )
 
-// Marshal is helper for sending responses.
-func Marshal[T any](w http.ResponseWriter, status int, data T, headers http.Header) error {
+// Response is helper for sending responses.
+func Response[T any](w http.ResponseWriter, status int, data T, headers http.Header) {
 	// Encode the data to JSON, returning the error if there was one.
 	js, err := json.Marshal(data)
 	if err != nil {
-		return err
+		http.Error(w, "The server encountered a problem and could not process your request. S=00001", http.StatusInternalServerError)
 	}
 
 	// appending a new line to make this easier to read via a terminal.
@@ -27,10 +27,8 @@ func Marshal[T any](w http.ResponseWriter, status int, data T, headers http.Head
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	if _, err := w.Write(js); err != nil {
-		return fmt.Errorf("error writing json: %w", err)
+		http.Error(w, "The server encountered a problem and could not process your request. S=00002", http.StatusInternalServerError)
 	}
-
-	return nil
 }
 
 // Limit the size of the request body to 1MB.
@@ -45,8 +43,8 @@ var (
 
 // TODO abstract away returning errors from the client in favor of an error type return with a reference_id. Log the current errors.
 
-// Unmarshal is helper for reading requests.
-func Unmarshal(w http.ResponseWriter, r *http.Request, dst any) error {
+// Request is helper for reading requests.
+func Request(w http.ResponseWriter, r *http.Request, dst any) error {
 
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
 	dec := json.NewDecoder(r.Body)
