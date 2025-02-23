@@ -7,18 +7,13 @@ import (
 	"io"
 	"net/http"
 	"strings"
-
-	iLogger "github.com/celestialdragonfly/betterreads-platform/internal/package/log"
 )
 
 type API struct {
-	Log *iLogger.Logger
 }
 
-func NewAPI(log *iLogger.Logger) *API {
-	return &API{
-		Log: log,
-	}
+func NewAPI() *API {
+	return &API{}
 }
 
 const (
@@ -66,14 +61,12 @@ func (a API) SearchBooks(query string, fieldMask []string, page int) (*SearchBoo
 	fmt.Println(url)
 	resp, err := http.Get(url)
 	if err != nil {
-		a.Log.Error("SearchBooks: unable to make http GET request to the OpenLibrary API", iLogger.Fields{"error": err.Error()})
 		return nil, ErrorRead
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		a.Log.Error("SearchBooks: unable to read the response body from the OpenLibrary API", iLogger.Fields{"error": err.Error()})
 		return nil, ErrorParse
 	}
 	fmt.Println(body)
@@ -98,11 +91,10 @@ func (a API) SearchBooks(query string, fieldMask []string, page int) (*SearchBoo
 	var oAPIResponse OpenAPIResponse
 
 	if err = json.Unmarshal(body, &oAPIResponse); err != nil {
-		a.Log.Error("SearchBooks: unable to unmarshal the response body from the OpenLibrary API", iLogger.Fields{"error": err.Error()})
 		return nil, ErrorUnmarshal
 	}
 
-	return &books, nil
+	return nil, nil
 }
 
 func GetBook() {}
