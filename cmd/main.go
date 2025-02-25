@@ -2,96 +2,144 @@ package main
 
 import (
 	"context"
-	"errors"
-	"fmt"
-	"io"
+	"log"
+	"log/slog"
 	"net/http"
 	"os"
-	"os/signal"
-	"sync"
+	"strconv"
 	"time"
 
-	"github.com/celestialdragonfly/betterreads-platform/internal/data"
-	"github.com/celestialdragonfly/betterreads-platform/internal/dependency/openlibrary"
-	"github.com/celestialdragonfly/betterreads-platform/internal/package/env"
-	"github.com/celestialdragonfly/betterreads-platform/internal/package/log"
-	"github.com/celestialdragonfly/betterreads-platform/internal/server"
+	betterreads "github.com/celestialdragonfly/betterreads/generated"
+	"github.com/celestialdragonfly/betterreads/internal/server"
+	strictnethttp "github.com/oapi-codegen/runtime/strictmiddleware/nethttp"
 )
 
-const version = "0.0.1"
-
-func run(ctx context.Context, w io.Writer, args []string) error {
-	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
-	defer cancel()
-
-	var (
-		port        = env.Int("HTTP_PORT", 4000, "API server port")
-		environment = env.String("DEPLOYMENT_ENV", "development", "Environment (development|staging|production)")
-
-		// Database Envs
-		databaseDSN                = env.String("DATABASE_DSN", "postgres://betterreads:<>@localhost/betterreads", "PostgreSQL DSN") // split this out into database name + password envs.
-		databaseTimeout            = env.Duration("DATABASE_TIMEOUT", 5*time.Second, "Create a context with a 5-second timeout deadline.")
-		databaseMaxOpenConnections = env.Int("DATABASE_MAX_OPEN_CONNECTIONS", 25, "PostgreSQL max open connections")
-		databaseMaxIdleConnections = env.Int("DATABASE_MAX_IDLE_CONNECTIONS", 25, "PostgreSQL max idle connections")
-		databaseMaxIdleTime        = env.Duration("DATABASE_MAX_IDLE_CONNECTIONS", 15*time.Minute, "PostgreSQL max connection idle time")
-	)
-
-	database, err := data.NewDatabase(&data.DBConfig{
-		DataSourceName:     databaseDSN,
-		Timeout:            databaseTimeout,
-		MaxOpenConnections: databaseMaxOpenConnections,
-		MaxIdleConnections: databaseMaxIdleConnections,
-		MaxIdleTime:        databaseMaxIdleTime,
-	})
-	if err != nil {
-		panic(fmt.Errorf("error connecting to database %w", err))
-	}
-
-	logger := log.NewLogger(w)
-	app := server.NewBetterReads(&server.Config{
-		Port:           port,
-		Env:            environment,
-		Version:        version,
-		DB:             database,
-		Logger:         logger,
-		OpenLibraryAPI: openlibrary.NewAPI(logger),
-	})
-	srv := &http.Server{
-		Addr:         fmt.Sprintf(":%d", port),
-		Handler:      app.Handler,
-		IdleTimeout:  time.Minute,
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		ErrorLog:     app.Logger.NewErrorLogger(),
-	}
-
-	go func() {
-		logger.Info(fmt.Sprintf("listening on %s", srv.Addr), nil)
-		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			logger.Error("error listening and serving", log.Fields{"error": err})
-		}
-	}()
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		<-ctx.Done()
-
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		if err := srv.Shutdown(shutdownCtx); err != nil {
-			fmt.Fprintf(os.Stderr, "error shutting down http server: %s\n", err)
-		}
-	}()
-	wg.Wait()
-	return nil
-
-}
+var (
+	Host = GetDefault("BR_HOST", "localhost")
+	Port = GetDefault("BR_PORT", "8080")
+)
 
 func main() {
-	ctx := context.Background()
-	if err := run(ctx, os.Stdout, os.Args); err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
-		os.Exit(1)
+	server := server.NewServer(&server.Config{})
+
+	strictHandler := betterreads.NewStrictHandler(
+		server,
+		[]betterreads.StrictMiddlewareFunc{
+			loggingMiddleware(),
+		},
+	)
+	httpHandler := betterreads.Handler(strictHandler)
+
+	srv := &http.Server{
+		Addr:    ":" + Port,
+		Handler: httpHandler,
 	}
+
+	log.Printf("Server starting on port %s", Port)
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.Fatalf("Server failed to start: %v", err)
+	}
+}
+
+// GetDefault returns the string value of the environment variable, or a default
+// value if the environment variable is not defined or is an empty string
+func GetDefault(envVar, defaultValue string) string {
+	if v, ok := os.LookupEnv(envVar); ok && len(v) > 0 {
+		return v
+	}
+	return defaultValue
+}
+
+// GetBoolDefault returns the boolean value of the environment variable, or a default
+// value if the environment variable is not defined or is an empty string
+func GetBoolDefault(envVar string, defaultValue bool) bool {
+	val := GetDefault(envVar, strconv.FormatBool(defaultValue))
+	if b, err := strconv.ParseBool(val); err == nil {
+		return b
+	}
+	return defaultValue
+}
+
+// GetIntDefault returns the int value of the environment variable, or a default
+// value if the environment variable is not defined or is an empty string
+func GetIntDefault(envVar string, defaultValue int) int {
+	val := GetDefault(envVar, strconv.Itoa(defaultValue))
+	if i, err := strconv.Atoi(val); err == nil {
+		return i
+	}
+	return defaultValue
+}
+
+// GetInt64Default returns the int64 value of the environment variable, or a default
+// value if the environment variable is not defined or is an empty string
+func GetInt64Default(envVar string, defaultValue int64) int64 {
+	val := GetDefault(envVar, strconv.FormatInt(defaultValue, 16))
+	if i, err := strconv.ParseInt(val, 10, 64); err == nil {
+		return i
+	}
+	return defaultValue
+}
+
+// GetFloatDefault returns the float64 value of the environment variable, or a default
+// value if the environment variable is not defined or is an empty string
+func GetFloatDefault(envVar string, defaultValue float64) float64 {
+	val := GetDefault(envVar, strconv.FormatFloat(defaultValue, 'E', -1, 64))
+	if f, err := strconv.ParseFloat(val, 64); err == nil {
+		return f
+	}
+	return defaultValue
+}
+
+// GetDurationDefault returns the time.Duration value of the environment variable, or a default
+// value if the environment variable is not defined or is an empty string
+func GetDurationDefault(envVar string, defaultValue time.Duration) time.Duration {
+	val := GetDefault(envVar, defaultValue.String())
+	if t, err := time.ParseDuration(val); err == nil {
+		return t
+	}
+	return defaultValue
+}
+
+// loggingMiddleware creates a StrictMiddlewareFunc for logging
+func loggingMiddleware() betterreads.StrictMiddlewareFunc {
+	return func(f strictnethttp.StrictHTTPHandlerFunc, operationID string) strictnethttp.StrictHTTPHandlerFunc {
+		return func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (response interface{}, err error) {
+			// Wrap response writer to capture status
+			wrapped := &responseWriter{
+				ResponseWriter: w,
+				statusCode:     http.StatusOK, // Default if not set
+			}
+
+			// Call the handler with wrapped writer
+			resp, err := f(ctx, wrapped, r, request)
+
+			logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+			level := slog.LevelInfo
+			if err != nil {
+				level = slog.LevelError
+			}
+			logger.LogAttrs(
+				context.TODO(),
+				level,
+				"Handled request",
+				slog.String("Path", r.URL.Path),
+				slog.String("Method", r.Method),
+				slog.Int("Status", wrapped.statusCode),
+				slog.Any("Error", err),
+			)
+
+			return resp, err
+		}
+	}
+}
+
+// responseWriter wraps http.ResponseWriter to capture status code
+type responseWriter struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+func (rw *responseWriter) WriteHeader(code int) {
+	rw.statusCode = code
+	rw.ResponseWriter.WriteHeader(code)
 }
