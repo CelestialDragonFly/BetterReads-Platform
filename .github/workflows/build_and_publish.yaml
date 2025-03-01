@@ -1,0 +1,84 @@
+name: Docker Image CI for GHCR
+
+on:
+  push:
+
+jobs:
+  unit_tests:
+    name: Run Unit Tests and Generate Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.24.0"
+
+      - name: Get dependencies
+        run: go mod download
+
+      - name: Run unit tests with coverage
+        run: go test ./... -v -coverprofile=coverage.out
+
+      - name: Generate coverage report
+        run: go tool cover -html=coverage.out -o coverage.html
+
+      - name: Calculate coverage percentage
+        id: coverage
+        run: |
+          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}')
+          echo "Total coverage: $COVERAGE"
+          echo "COVERAGE=$COVERAGE" >> $GITHUB_ENV
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            coverage.html
+            coverage.out
+          retention-days: 14
+  build_and_publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Docker tag
+        id: set_tag
+        run: |
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          SHORT_SHA=$(git rev-parse --short HEAD)
+
+          if [ "$BRANCH_NAME" = "main" ]; then
+            # Check if there's a version tag on this commit
+            VERSION_TAG=$(git tag --points-at HEAD | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)
+
+            if [ -n "$VERSION_TAG" ]; then
+              # If there's a version tag, use it
+              DOCKER_TAG="${VERSION_TAG}"
+            else
+              # If on main but no version tag, use 'latest'
+              DOCKER_TAG="latest"
+            fi
+          else
+            # For non-main branches, use branch name and short commit SHA
+            # Replace slashes in branch name with dashes for valid Docker tag
+            SAFE_BRANCH_NAME=$(echo ${BRANCH_NAME} | tr '/' '-')
+            DOCKER_TAG="${SAFE_BRANCH_NAME}-${SHORT_SHA}"
+          fi
+
+          echo "DOCKER_TAG=${DOCKER_TAG}" >> $GITHUB_ENV
+
+      - name: Build and push the image
+        run: |
+          docker login --username hirdrwit --password ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }} ghcr.io
+          docker build . --tag ghcr.io/celestialdragonfly/platform/betterreads:${DOCKER_TAG}
+          docker push ghcr.io/celestialdragonfly/platform/betterreads:${DOCKER_TAG}
+
+          # Also push as 'latest' if on main branch
+          if [ "${GITHUB_REF#refs/heads/}" = "main" ]; then
+            docker tag ghcr.io/celestialdragonfly/platform/betterreads${DOCKER_TAG} ghcr.io/celestialdragonfly/platform/betterreads-plat3:latest
+            docker push ghcr.io/celestialdragonfly/platform/betterreads:latest
+          fi
