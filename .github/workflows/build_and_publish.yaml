@@ -79,6 +79,6 @@ jobs:
 
           # Also push as 'latest' if on main branch
           if [ "${GITHUB_REF#refs/heads/}" = "main" ]; then
-            docker tag ghcr.io/celestialdragonfly/platform/betterreads${DOCKER_TAG} ghcr.io/celestialdragonfly/platform/betterreads-plat3:latest
+            docker tag ghcr.io/celestialdragonfly/platform/betterreads:${DOCKER_TAG} ghcr.io/celestialdragonfly/platform/betterreads:latest
             docker push ghcr.io/celestialdragonfly/platform/betterreads:latest
           fi
