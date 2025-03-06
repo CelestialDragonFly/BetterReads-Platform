@@ -88,7 +88,7 @@ linters-settings:
     # Use the default set of vet checks, which have the best signal-to-noise ratio
     enable-all: false
     # Don't report about shadowed variables
-    check-shadowing: false
+    enable: [shadow]
 
   lll:
     # Default: 120.
@@ -132,11 +132,11 @@ linters-settings:
     packages:
       - github.com/jmoiron/sqlx
 
-  tenv:
+  usetesting:
     # The option `all` will run against whole test files (`_test.go`) regardless of method/function signatures.
     # Otherwise, only methods that take `*testing.T`, `*testing.B`, and `testing.TB` as arguments are checked.
     # Default: false
-    all: true
+    os-setenv: true
 
 linters:
   disable-all: true
@@ -194,7 +194,6 @@ linters:
     - revive # fast, configurable, extensible, flexible, and beautiful linter for Go, drop-in replacement of golint
     - rowserrcheck # checks whether Err of rows is checked successfully
     - sqlclosecheck # checks that sql.Rows and sql.Stmt are closed
-    - tenv # detects using os.Setenv instead of t.Setenv since Go1.17
     - testableexamples # checks if examples are testable (have an expected output)
     #    - testpackage # makes you use a separate _test package
     - tparallel # detects inappropriate usage of t.Parallel() method in your Go test codes
