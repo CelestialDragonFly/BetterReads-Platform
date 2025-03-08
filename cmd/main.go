@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	Host                   = env.GetDefault("BETTER_READS_HOST", "localhost")
+	Host                   = env.GetDefault("BETTER_READS_HOST", "0.0.0.0")
 	Port                   = env.GetIntDefault("BETTER_READS_PORT", 8080) //nolint: mnd // ignore magic numbers
 	FirebaseServiceAccount = env.GetDefault("FIREBASE_SERVICE_ACCOUNT", "./secrets/firebase-serviceaccount.json")
 )
@@ -36,7 +36,7 @@ func main() {
 	httpHandler := betterreads.Handler(strictHandler)
 
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", Port),
+		Addr:    fmt.Sprintf("%s:%d", Host, Port),
 		Handler: httpHandler,
 	}
 
