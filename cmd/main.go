@@ -2,19 +2,19 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	betterreads "github.com/celestialdragonfly/betterreads/generated"
 	"github.com/celestialdragonfly/betterreads/internal/auth"
 	"github.com/celestialdragonfly/betterreads/internal/env"
+	"github.com/celestialdragonfly/betterreads/internal/log"
 	"github.com/celestialdragonfly/betterreads/internal/middleware"
 	"github.com/celestialdragonfly/betterreads/internal/server"
 )
 
 var (
-	Host                   = env.GetDefault("BETTER_READS_HOST", "0.0.0.0")
-	Port                   = env.GetIntDefault("BETTER_READS_PORT", 8080) //nolint: mnd // ignore magic numbers
+	Host                   = env.GetDefault("BETTERREADS_HOST", "0.0.0.0")
+	Port                   = env.GetIntDefault("BETTERREADS_PORT", 8080) //nolint: mnd // ignore magic numbers
 	FirebaseServiceAccount = env.GetDefault("FIREBASE_SERVICE_ACCOUNT", "./secrets/firebase-serviceaccount.json")
 )
 
@@ -40,8 +40,8 @@ func main() {
 		Handler: httpHandler,
 	}
 
-	log.Printf("Server starting on port %d", Port)
+	log.Info(fmt.Sprintf("Server starting on port %d", Port))
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatalf("Server failed to start: %v", err)
+		panic(fmt.Sprintf("Server failed to start: %v", err))
 	}
 }
