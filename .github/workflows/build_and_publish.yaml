@@ -40,10 +40,16 @@ jobs:
             coverage.html
             coverage.out
           retention-days: 14
+
   build_and_publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      - name: Set up Firebase Service Account
+        run: echo "$FIREBASE_SERVICE_ACCOUNT" > firebase-serviceaccount.json
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
 
       - name: Set up Docker tag
         id: set_tag
@@ -74,7 +80,9 @@ jobs:
       - name: Build and push the image
         run: |
           docker login --username hirdrwit --password ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }} ghcr.io
-          docker build . --tag ghcr.io/celestialdragonfly/platform/betterreads:${DOCKER_TAG}
+          docker build . \
+          --build-arg FIREBASE_CONFIG="$(cat firebase-serviceaccount.json)" \
+          --tag ghcr.io/celestialdragonfly/platform/betterreads:${DOCKER_TAG}
           docker push ghcr.io/celestialdragonfly/platform/betterreads:${DOCKER_TAG}
 
           # Also push as 'latest' if on main branch
