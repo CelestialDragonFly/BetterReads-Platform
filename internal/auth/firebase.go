@@ -17,14 +17,17 @@ type Firebase struct {
 	AuthClient *auth.Client
 }
 
-func NewFirebaseAuth(cfg Config) (*Firebase, error) {
+// Ensures Firebase implements the Authenticator interface.
+var _ Authenticator = &Firebase{}
+
+func NewFirebaseAuth(ctx context.Context, cfg Config) (*Firebase, error) {
 	opt := option.WithCredentialsFile(cfg.FirebaseServiceAccount)
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
 		return nil, fmt.Errorf("error initializing Firebase app: %w", err)
 	}
 
-	authClient, err := app.Auth(context.Background())
+	authClient, err := app.Auth(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error getting Auth client: %w", err)
 	}

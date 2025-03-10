@@ -1,5 +1,9 @@
 package auth
 
+import (
+	"context"
+)
+
 type Token struct {
 	AuthTime int64
 	Issuer   string
@@ -16,4 +20,11 @@ type Token struct {
 		Identities     map[string]any
 	}
 	Claims map[string]any
+}
+
+// Authenticator defines an interface for verifying an ID token.
+// Implementations of this interface should provide a method to validate
+// the token and return the corresponding authentication token or an error.
+type Authenticator interface {
+	VerifyIDToken(ctx context.Context, idToken string) (*Token, error)
 }

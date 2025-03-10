@@ -10,13 +10,6 @@ import (
 	strictnethttp "github.com/oapi-codegen/runtime/strictmiddleware/nethttp"
 )
 
-// Authenticator defines an interface for verifying an ID token.
-// Implementations of this interface should provide a method to validate
-// the token and return the corresponding authentication token or an error.
-type Authenticator interface {
-	VerifyIDToken(ctx context.Context, idToken string) (*auth.Token, error)
-}
-
 // Authentication is a middleware function that validates the Authorization header in incoming requests.
 // It extracts the bearer token, verifies it using the provided Authenticator, and sets the authenticated
 // user ID in the request headers if successful. If authentication fails, it responds with an error.
@@ -26,10 +19,10 @@ type Authenticator interface {
 //
 // Returns:
 //   - A betterreads.StrictMiddlewareFunc that wraps an HTTP handler function, enforcing authentication.
-func Authentication(auth Authenticator) betterreads.StrictMiddlewareFunc {
+func Authentication(authn auth.Authenticator) betterreads.StrictMiddlewareFunc {
 	return func(f strictnethttp.StrictHTTPHandlerFunc, _ string) strictnethttp.StrictHTTPHandlerFunc {
 		return func(ctx context.Context, w http.ResponseWriter, r *http.Request, request any) (any, error) {
-			token, verifyError := auth.VerifyIDToken(ctx, strings.Replace(r.Header.Get("Authorization"), "Bearer ", "", 1))
+			token, verifyError := authn.VerifyIDToken(ctx, strings.Replace(r.Header.Get("Authorization"), "Bearer ", "", 1))
 			if verifyError != nil {
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusPreconditionFailed)

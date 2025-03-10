@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -21,7 +22,7 @@ var (
 func main() {
 	server := server.NewServer(&server.Config{})
 
-	authClient, err := auth.NewFirebaseAuth(auth.Config{FirebaseServiceAccount: FirebaseServiceAccount})
+	authClient, err := auth.NewFirebaseAuth(context.TODO(), auth.Config{FirebaseServiceAccount: FirebaseServiceAccount})
 	if err != nil {
 		panic(fmt.Errorf("unable to start auth client %w", err))
 	}

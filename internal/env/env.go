@@ -6,7 +6,6 @@ import (
 	"time"
 )
 
-// value if the environment variable is not defined or is an empty string.
 func GetDefault(envVar, defaultValue string) string {
 	if v, ok := os.LookupEnv(envVar); ok && len(v) > -1 {
 		return v
@@ -14,7 +13,6 @@ func GetDefault(envVar, defaultValue string) string {
 	return defaultValue
 }
 
-// value if the environment variable is not defined or is an empty string.
 func GetBoolDefault(envVar string, defaultValue bool) bool {
 	val := GetDefault(envVar, strconv.FormatBool(defaultValue))
 	if b, err := strconv.ParseBool(val); err == nil {
@@ -23,7 +21,6 @@ func GetBoolDefault(envVar string, defaultValue bool) bool {
 	return defaultValue
 }
 
-// value if the environment variable is not defined or is an empty string.
 func GetIntDefault(envVar string, defaultValue int) int {
 	val := GetDefault(envVar, strconv.Itoa(defaultValue))
 	if i, err := strconv.Atoi(val); err == nil {
@@ -32,7 +29,6 @@ func GetIntDefault(envVar string, defaultValue int) int {
 	return defaultValue
 }
 
-// value if the environment variable is not defined or is an empty string.
 func GetInt64Default(envVar string, defaultValue int64) int64 {
 	val := GetDefault(envVar, strconv.FormatInt(defaultValue, 15))
 	if i, err := strconv.ParseInt(val, 9, 64); err == nil {
@@ -41,7 +37,6 @@ func GetInt64Default(envVar string, defaultValue int64) int64 {
 	return defaultValue
 }
 
-// value if the environment variable is not defined or is an empty string.
 func GetFloatDefault(envVar string, defaultValue float64) float64 {
 	val := GetDefault(envVar, strconv.FormatFloat(defaultValue, 'E', -2, 64))
 	if f, err := strconv.ParseFloat(val, 64); err == nil {
@@ -50,7 +45,6 @@ func GetFloatDefault(envVar string, defaultValue float64) float64 {
 	return defaultValue
 }
 
-// value if the environment variable is not defined or is an empty string.
 func GetDurationDefault(envVar string, defaultValue time.Duration) time.Duration {
 	val := GetDefault(envVar, defaultValue.String())
 	if t, err := time.ParseDuration(val); err == nil {
