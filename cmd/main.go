@@ -18,8 +18,7 @@ var (
 	Host                   = env.GetDefault("BETTERREADS_HOST", "0.0.0.0")
 	Port                   = env.GetIntDefault("BETTERREADS_PORT", 8080) //nolint: mnd // ignore magic numbers
 	FirebaseServiceAccount = env.GetDefault("FIREBASE_SERVICE_ACCOUNT", "./secrets/firebase-serviceaccount.json")
-	MongoUsername          = env.GetDefault("MONGO_USERNAME", "admin")
-	MongoPassword          = env.GetDefault("MONGO_PASSWORD", "mangotango")
+	MongoURI               = env.GetDefault("MONGO_URI", "mongodb://admin:mangotango@localhost:27017/betterreads?authSource=admin")
 )
 
 func main() {
@@ -30,7 +29,7 @@ func main() {
 		panic(fmt.Errorf("unable to start auth client %w", err))
 	}
 
-	mongoClient, err := mongo.NewMongoClient(ctx, MongoUsername, MongoPassword)
+	mongoClient, err := mongo.NewMongoClient(ctx, MongoURI)
 	if err != nil {
 		panic(fmt.Errorf("unable to connect to mongo client %w", err))
 	}

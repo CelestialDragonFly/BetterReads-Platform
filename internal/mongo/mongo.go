@@ -18,9 +18,7 @@ type Client struct {
 	DB *mongo.Client
 }
 
-func NewMongoClient(ctx context.Context, username string, password string) (*Client, error) {
-	uri := fmt.Sprintf("mongodb://%s:%s@mongo:27017/betterreadsdb?authSource=admin", username, password)
-
+func NewMongoClient(ctx context.Context, uri string) (*Client, error) {
 	clientOpts := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(ctx, clientOpts)
 	if err != nil {

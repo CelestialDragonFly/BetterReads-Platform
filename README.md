@@ -2,16 +2,31 @@
 
 ## Local Developement
 ### Running Locally
-Todo.
+Make sure you clone the [Betterreads-Platform-Release](https://github.com/CelestialDragonFly/BetterReads-Platform-Release) Repository and setup the .env file.
 
-### Locally building a Docker Image and Deploying
+Start a local mongo server.
 ```sh
-> docker build . -t betterreads
-> docker run -v $(pwd)/secrets/firebase-serviceaccount.json:/app/serviceAccount.json -e FIREBASE_SERVICE_ACCOUNT=/app/serviceAccount.json -p 8080:8080 betterreads
+docker compose -f '../betterreads-platform-release/docker-compose.yaml' up -d --build 'mongo'
 ```
 
-### Deploying Docker Image from Github Container Registry
+You may now run the program locally.
+
+Command line example:
 ```sh
-docker pull ghcr.io/celestialdragonfly/platform/betterreads:<image>
-docker run -p 8080:8080 ghcr.io/celestialdragonfly/platform/betterreads:<image>
+go run ./...
+```
+
+### Locally building a Docker Image
+```sh
+ docker build . \
+    --build-arg FIREBASE_CONFIG="$(cat secrets/firebase-serviceaccount.json)" \
+    --tag betterreads:plat-10
+ ```
+
+### Running BetterReads on Machine (PaaS)
+Update the Betterreads-Platform-Release `docker-compose.yaml` with either a locally built docker image or a remote image from GitHub Container Registry (GHCR).
+
+Run
+```sh
+docker compose up
 ```

@@ -13,8 +13,8 @@ COPY --from=builder /app/cmd/binary /app/betterreads
 RUN chmod +x /app/betterreads
 ARG FIREBASE_CONFIG
 ENV FIREBASE_SERVICE_ACCOUNT=/app/firebase-serviceaccount.json
+RUN echo "$FIREBASE_CONFIG" > /app/firebase-serviceaccount.json
 
 EXPOSE 8080
 
-# Run the binary
 CMD ["/app/betterreads"]
