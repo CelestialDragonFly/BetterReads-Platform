@@ -4,18 +4,23 @@ import (
 	"context"
 
 	betterreads "github.com/celestialdragonfly/betterreads/generated"
+	"github.com/celestialdragonfly/betterreads/internal/mongo"
 )
 
 type Config struct {
+	MongoClient *mongo.Client
 }
 
 type Server struct {
+	Data *mongo.Client
 }
 
 var _ betterreads.StrictServerInterface = (*Server)(nil)
 
-func NewServer(_ *Config) *Server {
-	return &Server{}
+func NewServer(cfg *Config) *Server {
+	return &Server{
+		Data: cfg.MongoClient,
+	}
 }
 
 // GetBooks implements betterreads.StrictServerInterface.
