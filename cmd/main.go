@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	betterreads "github.com/celestialdragonfly/betterreads/generated"
 	"github.com/celestialdragonfly/betterreads/internal/auth"
@@ -11,6 +12,7 @@ import (
 	"github.com/celestialdragonfly/betterreads/internal/log"
 	"github.com/celestialdragonfly/betterreads/internal/middleware"
 	"github.com/celestialdragonfly/betterreads/internal/mongo"
+	"github.com/celestialdragonfly/betterreads/internal/openlibrary"
 	"github.com/celestialdragonfly/betterreads/internal/server"
 )
 
@@ -19,6 +21,9 @@ var (
 	Port                   = env.GetIntDefault("BETTERREADS_PORT", 8080) //nolint: mnd // ignore magic numbers
 	FirebaseServiceAccount = env.GetDefault("FIREBASE_SERVICE_ACCOUNT", "./secrets/firebase-serviceaccount.json")
 	MongoURI               = env.GetDefault("MONGO_URI", "mongodb://admin:mangotango@localhost:27017/betterreads?authSource=admin")
+	OpenLibraryHost        = env.GetDefault("OPEN_LIBRARY_HOST", "https://openlibrary.org")
+	timeout                = 5 * time.Second
+	ReaderTimeout          = env.GetDurationDefault("BETTERREADS_READERTIMEOUT", timeout)
 )
 
 func main() {
@@ -34,8 +39,14 @@ func main() {
 		panic(fmt.Errorf("unable to connect to mongo client %w", err))
 	}
 
+	openLibraryClient, err := openlibrary.NewClient(OpenLibraryHost)
+	if err != nil {
+		panic(fmt.Errorf("unable to connect to open library %w", err))
+	}
+
 	server := server.NewServer(&server.Config{
 		MongoClient: mongoClient,
+		OpenLibrary: openLibraryClient,
 	})
 
 	strictHandler := betterreads.NewStrictHandler(
@@ -48,8 +59,9 @@ func main() {
 	httpHandler := betterreads.Handler(strictHandler)
 
 	srv := &http.Server{
-		Addr:    fmt.Sprintf("%s:%d", Host, Port),
-		Handler: httpHandler,
+		Addr:              fmt.Sprintf("%s:%d", Host, Port),
+		Handler:           httpHandler,
+		ReadHeaderTimeout: ReaderTimeout,
 	}
 
 	log.Info(fmt.Sprintf("Server starting on port %d", Port))

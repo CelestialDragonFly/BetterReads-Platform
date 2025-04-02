@@ -25,8 +25,8 @@ func Authentication(authn auth.Authenticator) betterreads.StrictMiddlewareFunc {
 			token, verifyError := authn.VerifyIDToken(ctx, strings.Replace(r.Header.Get("Authorization"), "Bearer ", "", 1))
 			if verifyError != nil {
 				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusPreconditionFailed)
-				_, _ = w.Write([]byte(`{"code": "TBD", "message": "invalid authorization"}`))
+				w.WriteHeader(http.StatusUnauthorized)
+				_, _ = w.Write([]byte(`{"code": "UNAUTHORIZED", "message": "invalid authorization"}`))
 				//nolint: nilerr // error in this context is reserved for internal server errors and our open API doesn't define middleware yet.
 				return nil, nil
 			}
