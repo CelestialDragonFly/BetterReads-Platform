@@ -1,0 +1,178 @@
+openapi: 3.0.3
+info:
+  title: OpenLibrary Search API
+  description: OpenAPI spec for the OpenLibrary search endpoint.
+  version: 1.0.2
+
+servers:
+  - url: https://openlibrary.org
+
+paths:
+  /search.json:
+    get:
+      summary: Search for books in OpenLibrary
+      operationId: searchBooks
+      parameters:
+        - name: User-Agent
+          in: header
+          description: Contact info
+          required: true
+          schema:
+            type: string
+            example: "BetterReads example@gmail.com"
+        - name: q
+          in: query
+          description: General search query (title, author, etc.)
+          required: true
+          schema:
+            type: string
+        - name: title
+          in: query
+          description: Title of the book
+          required: false
+          schema:
+            type: string
+        - name: author
+          in: query
+          description: Author of the book
+          required: false
+          schema:
+            type: string
+        - name: subject
+          in: query
+          description: Subject of the book
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Page number of results to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: limit
+          in: query
+          description: Number of results to return per page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: fields
+          in: query
+          description: |
+            Comma-separated list of fields to include in the response.
+            Use `*` to fetch all fields.
+            Include `availability` to fetch item availability from archive.org (e.g. `fields=*,availability`).
+          required: false
+          schema:
+            type: string
+            example: "*,availability"
+        - name: lang
+          in: query
+          description: |
+            Two-letter ISO 639-1 language code indicating the user's language preference.
+            This influences the edition shown (e.g., prefer French edition if `fr` is passed)
+            but does **not** exclude works that don’t match the language.
+          required: false
+          schema:
+            type: string
+            pattern: "^[a-z]{2}$"
+            example: "en"
+      responses:
+        "200":
+          description: Successful search response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResponse"
+
+components:
+  schemas:
+    SearchResponse:
+      type: object
+      required:
+        - numFound
+        - start
+        - numFoundExact
+        - documentation_url
+        - q
+        - offset
+        - docs
+      properties:
+        numFound:
+          type: integer
+          example: 3658
+        start:
+          type: integer
+          example: 0
+        numFoundExact:
+          type: boolean
+          example: true
+        documentation_url:
+          type: string
+          format: uri
+          example: https://openlibrary.org/dev/docs/api/search
+        q:
+          type: string
+          example: harry+potter
+        offset:
+          type: integer
+          nullable: true
+          example: null
+        docs:
+          type: array
+          items:
+            $ref: "#/components/schemas/SearchDocument"
+
+    SearchDocument:
+      type: object
+      required:
+        - author_key
+        - author_name
+        - cover_edition_key
+        - isbn
+        - key
+        - title
+        - ratings_average
+        - ratings_count
+        - publish_year
+      properties:
+        author_key:
+          type: array
+          items:
+            type: string
+          example: ["OL23919A"]
+        author_name:
+          type: array
+          items:
+            type: string
+          example: ["J. K. Rowling"]
+        cover_edition_key:
+          type: string
+          example: "OL48118497M"
+        isbn:
+          type: array
+          items:
+            type: string
+          example: ["7020103294", "1408812843"]
+        key:
+          type: string
+          example: /works/OL82563W
+        title:
+          type: string
+          example: Harry Potter and the Philosopher's Stone
+        ratings_average:
+          type: number
+          format: float
+          example: 4.2377453
+        ratings_count:
+          type: integer
+          example: 816
+        publish_year:
+          type: array
+          items:
+            type: integer
+          example: [1997, 1998, 1999]
+      additionalProperties: true

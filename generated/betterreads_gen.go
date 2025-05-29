@@ -13,20 +13,22 @@ import (
 
 	"github.com/oapi-codegen/runtime"
 	strictnethttp "github.com/oapi-codegen/runtime/strictmiddleware/nethttp"
-	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 // Book defines model for Book.
 type Book struct {
-	Author      string `json:"author"`
-	BookImage   string `json:"book_image"`
-	Description string `json:"description"`
-	Genre       string `json:"genre"`
+	AuthorId   string `json:"author_id"`
+	AuthorName string `json:"author_name"`
+	BookImage  string `json:"book_image"`
 
 	// Id Unique identifier for the book
-	Id            string              `json:"id"`
-	PublishedDate *openapi_types.Date `json:"published_date,omitempty"`
-	Title         string              `json:"title"`
+	Id            string  `json:"id"`
+	Isbn          string  `json:"isbn"`
+	PublishedYear int     `json:"published_year"`
+	RatingAverage float32 `json:"rating_average"`
+	RatingCount   int     `json:"rating_count"`
+	Source        string  `json:"source"`
+	Title         string  `json:"title"`
 }
 
 // ErrorResponse defines model for ErrorResponse.
@@ -59,12 +61,6 @@ type GetApiV1BooksParams struct {
 
 	// Subject Query books about subjects.
 	Subject *string `form:"subject,omitempty" json:"subject,omitempty"`
-
-	// Place Query books about locations.
-	Place *string `form:"place,omitempty" json:"place,omitempty"`
-
-	// Publisher Query books by publisher.
-	Publisher *string `form:"publisher,omitempty" json:"publisher,omitempty"`
 }
 
 // ServerInterface represents all server handlers.
@@ -120,22 +116,6 @@ func (siw *ServerInterfaceWrapper) GetApiV1Books(w http.ResponseWriter, r *http.
 	err = runtime.BindQueryParameter("form", true, false, "subject", r.URL.Query(), &params.Subject)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subject", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "place" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "place", r.URL.Query(), &params.Place)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "place", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "publisher" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "publisher", r.URL.Query(), &params.Publisher)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "publisher", Err: err})
 		return
 	}
 
@@ -297,6 +277,24 @@ type GetApiV1Books400JSONResponse ErrorResponse
 func (response GetApiV1Books400JSONResponse) VisitGetApiV1BooksResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetApiV1Books404JSONResponse ErrorResponse
+
+func (response GetApiV1Books404JSONResponse) VisitGetApiV1BooksResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetApiV1Books500JSONResponse ErrorResponse
+
+func (response GetApiV1Books500JSONResponse) VisitGetApiV1BooksResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
 
 	return json.NewEncoder(w).Encode(response)
 }
