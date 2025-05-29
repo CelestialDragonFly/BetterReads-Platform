@@ -24,6 +24,7 @@ func (m *MockHTTPClient) Do(req *http.Request) (*http.Response, error) {
 
 // TestNewClient tests the NewClient function.
 func TestNewClient(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		host    string
@@ -59,6 +60,7 @@ func TestNewClient(t *testing.T) {
 //
 //nolint:gocognit // unit test
 func TestSearchBooks(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	tests := []struct {
@@ -205,6 +207,7 @@ func TestSearchBooks(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			// Create a mock HTTP client
 			mockClient := &MockHTTPClient{
 				DoFunc: func(*http.Request) (*http.Response, error) {
@@ -269,6 +272,7 @@ func TestSearchBooks(t *testing.T) {
 
 // TestGetFirstValue tests the getFirstValue function.
 func TestGetFirstValue(t *testing.T) {
+	t.Parallel()
 	// Test with strings
 	t.Run("String slice with values", func(t *testing.T) {
 		slice := []string{"first", "second", "third"}
@@ -312,6 +316,7 @@ func TestGetFirstValue(t *testing.T) {
 //
 //nolint:gocognit // unit test
 func TestSearchBooksIntegration(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	query := "harry potter"
 

@@ -31,6 +31,7 @@ func NewMockClient() *MockOpenLibraryClient {
 }
 
 func TestServer_GetApiV1Books_Success(t *testing.T) {
+	t.Parallel()
 	// Setup
 	mockClient := NewMockClient()
 	server := NewServer(&Config{
@@ -92,6 +93,7 @@ func TestServer_GetApiV1Books_Success(t *testing.T) {
 }
 
 func TestServer_GetApiV1Books_NilQuery(t *testing.T) {
+	t.Parallel()
 	// Setup
 	mockClient := NewMockClient()
 	server := NewServer(&Config{
@@ -125,6 +127,7 @@ func TestServer_GetApiV1Books_NilQuery(t *testing.T) {
 }
 
 func TestServer_GetApiV1Books_Errors(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name          string
 		error         error
@@ -169,6 +172,7 @@ func TestServer_GetApiV1Books_Errors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			// Setup
 			mockClient := NewMockClient()
 			server := NewServer(&Config{
@@ -229,6 +233,7 @@ func TestServer_GetApiV1Books_Errors(t *testing.T) {
 }
 
 func TestServer_GetApiV1Books_EmptyResults(t *testing.T) {
+	t.Parallel()
 	// Setup
 	mockClient := NewMockClient()
 	server := NewServer(&Config{
@@ -267,6 +272,7 @@ func TestServer_GetApiV1Books_EmptyResults(t *testing.T) {
 }
 
 func TestServer_GetApiV1Books_MultipleBooks(t *testing.T) {
+	t.Parallel()
 	// Setup
 	mockClient := NewMockClient()
 	server := NewServer(&Config{
