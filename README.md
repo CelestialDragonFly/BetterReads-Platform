@@ -4,9 +4,9 @@
 ### Running Locally
 Make sure you clone the [Betterreads-Platform-Release](https://github.com/CelestialDragonFly/BetterReads-Platform-Release) Repository and setup the .env file.
 
-Start a local mongo server.
+Start a local Postgres Database.
 ```sh
-docker compose -f '../betterreads-platform-release/docker-compose.yaml' up -d --build 'mongo'
+docker compose -f '../betterreads-platform-release/docker-compose.yaml' --env-file ../betterreads-platform-release/.env up --build 'postgres'
 ```
 
 You may now run the program locally.

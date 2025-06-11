@@ -10,22 +10,11 @@ import (
 	"github.com/google/uuid"
 )
 
-// GetApiV1Books handles the API request to search for books based on a query string.
-// It calls the OpenLibrary service to fetch book details and formats the response accordingly.
-//
-// Parameters:
-// - ctx: The context for the request, allowing for cancellation and timeout control.
-// - request: The request object containing query parameters for book search.
-//
-// Returns:
-// - betterreads.GetApiV1BooksResponseObject: The API response containing book details or an error message.
-// - error: Always nil, as errors are encapsulated in the response object. In OpenAPI, the error is reserved for internal server errors.
-//
-//nolint:revive // must satisfy interface
-func (s *Server) GetApiV1Books(ctx context.Context, request betterreads.GetApiV1BooksRequestObject) (betterreads.GetApiV1BooksResponseObject, error) {
+// (GET /api/v1/books).
+func (s *Server) SearchBooks(ctx context.Context, request betterreads.SearchBooksRequestObject) (betterreads.SearchBooksResponseObject, error) {
 	if err := verifyGetAPIV1BooksRequest(request); err != nil {
 		//nolint:nilerr // errors are reserved for internal errors
-		return betterreads.GetApiV1Books400JSONResponse{
+		return betterreads.SearchBooks400JSONResponse{
 			Code: "BAD_REQUEST",
 			Details: &map[string]any{
 				"error":        err.Error(),
@@ -43,10 +32,10 @@ func (s *Server) GetApiV1Books(ctx context.Context, request betterreads.GetApiV1
 		request.Params.Subject,
 	)
 	if err != nil {
-		var resp betterreads.GetApiV1BooksResponseObject
+		var resp betterreads.SearchBooksResponseObject
 		switch {
 		case errors.Is(err, openlibrary.ErrBadRequest):
-			resp = betterreads.GetApiV1Books400JSONResponse{
+			resp = betterreads.SearchBooks400JSONResponse{
 				Code: "BAD_REQUEST",
 				Details: &map[string]any{
 					"error":        err.Error(),
@@ -55,7 +44,7 @@ func (s *Server) GetApiV1Books(ctx context.Context, request betterreads.GetApiV1
 				Message: "search books - bad request",
 			}
 		case errors.Is(err, openlibrary.ErrNotFound):
-			resp = betterreads.GetApiV1Books404JSONResponse{
+			resp = betterreads.SearchBooks400JSONResponse{ // todo add 404 back
 				Code: "NOT_FOUND",
 				Details: &map[string]any{
 					"error":        err.Error(),
@@ -64,7 +53,7 @@ func (s *Server) GetApiV1Books(ctx context.Context, request betterreads.GetApiV1
 				Message: "search books - not found",
 			}
 		case errors.Is(err, openlibrary.ErrInternalServer):
-			resp = betterreads.GetApiV1Books500JSONResponse{
+			resp = betterreads.SearchBooks500JSONResponse{
 				Code: "INTERNAL_SERVER_ERROR",
 				Details: &map[string]any{
 					"error":        err.Error(),
@@ -74,7 +63,7 @@ func (s *Server) GetApiV1Books(ctx context.Context, request betterreads.GetApiV1
 			}
 		default:
 			log.Warn("unhandled error", map[string]error{"error": err})
-			resp = betterreads.GetApiV1Books500JSONResponse{
+			resp = betterreads.SearchBooks500JSONResponse{
 				Code: "UNKNOWN",
 				Details: &map[string]any{
 					"error":        err.Error(),
@@ -98,13 +87,17 @@ func (s *Server) GetApiV1Books(ctx context.Context, request betterreads.GetApiV1
 			Isbn:          book.ISBN,
 			RatingCount:   book.RatingCount,
 			RatingAverage: book.RatingAverage,
-			Source:        book.Source,
+			Source:        betterreads.BookSourceOpenLibrary, // todo add mapper
 		})
 	}
-	return betterreads.GetApiV1Books200JSONResponse{Books: books}, nil
+	return betterreads.SearchBooks200JSONResponse{
+		Body: betterreads.GetBooksResponse{
+			Books: books,
+		},
+	}, nil
 }
 
-func verifyGetAPIV1BooksRequest(request betterreads.GetApiV1BooksRequestObject) error {
+func verifyGetAPIV1BooksRequest(request betterreads.SearchBooksRequestObject) error {
 	if (request.Params.Query == nil || getStringFromPointer(request.Params.Query) == "") &&
 		request.Params.Title == nil &&
 		request.Params.Author == nil &&

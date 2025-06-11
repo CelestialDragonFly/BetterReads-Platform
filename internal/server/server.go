@@ -2,17 +2,17 @@ package server
 
 import (
 	betterreads "github.com/celestialdragonfly/betterreads/generated"
-	"github.com/celestialdragonfly/betterreads/internal/mongo"
 	"github.com/celestialdragonfly/betterreads/internal/openlibrary"
+	"github.com/celestialdragonfly/betterreads/internal/postgres"
 )
 
 type Config struct {
-	MongoClient *mongo.Client
+	SQLClient   *postgres.Client
 	OpenLibrary openlibrary.ClientInterface
 }
 
 type Server struct {
-	Data        *mongo.Client
+	Data        *postgres.Client
 	OpenLibrary openlibrary.ClientInterface
 }
 
@@ -21,7 +21,7 @@ var _ betterreads.StrictServerInterface = (*Server)(nil)
 // NewServer creates a new server instance with the provided configuration.
 func NewServer(cfg *Config) *Server {
 	return &Server{
-		Data:        cfg.MongoClient,
+		Data:        cfg.SQLClient,
 		OpenLibrary: cfg.OpenLibrary,
 	}
 }
