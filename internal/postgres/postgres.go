@@ -2,11 +2,10 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 
-	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/jackc/pgx/v5"
 )
 
 var (
@@ -15,19 +14,38 @@ var (
 )
 
 type Client struct {
-	DB *sql.DB
+	DB *pgx.Conn
 }
 
 func NewClient(ctx context.Context, dsn string) (*Client, error) {
-	db, err := sql.Open("pgx", dsn)
+	db, err := pgx.Connect(ctx, dsn)
 	if err != nil {
-		return nil, fmt.Errorf("NewClient: %w", ErrUnableToConnect)
-	}
-	defer db.Close()
-
-	if err := db.PingContext(ctx); err != nil {
-		return nil, fmt.Errorf("NewClient: %w", ErrUnableToPing)
+		return nil, fmt.Errorf("NewClient postgress: %w", ErrUnableToConnect)
 	}
 
+	if err := db.Ping(ctx); err != nil {
+		return nil, fmt.Errorf("NewClient postgress: %w", ErrUnableToPing)
+	}
+
+	if err := migrate(ctx, db); err != nil {
+		return nil, fmt.Errorf("NewClient postgress: %w", err)
+
+	}
 	return &Client{DB: db}, nil
+}
+
+var (
+	registers = []func(context.Context, *pgx.Conn) error{
+		registerUser,
+	}
+)
+
+func migrate(ctx context.Context, db *pgx.Conn) error {
+	for _, f := range registers {
+		err := f(ctx, db)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

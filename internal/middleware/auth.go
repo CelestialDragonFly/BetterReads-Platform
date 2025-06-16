@@ -7,6 +7,7 @@ import (
 
 	betterreads "github.com/celestialdragonfly/betterreads/generated"
 	"github.com/celestialdragonfly/betterreads/internal/auth"
+	"github.com/celestialdragonfly/betterreads/internal/headers"
 	strictnethttp "github.com/oapi-codegen/runtime/strictmiddleware/nethttp"
 )
 
@@ -31,7 +32,7 @@ func Authentication(authn auth.Authenticator) betterreads.StrictMiddlewareFunc {
 				return nil, nil
 			}
 
-			r.Header.Set("userid", token.UserID)
+			ctx = context.WithValue(ctx, headers.UserIDContextKey, token.UserID)
 			return f(ctx, w, r, request)
 		}
 	}

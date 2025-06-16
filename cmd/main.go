@@ -65,9 +65,8 @@ func main() {
 	}
 
 	log.Info(fmt.Sprintf("Server starting on port %d", Port))
-	// Optional: close on shutdown
 	defer func() {
-		if err := sqlClient.DB.Close(); err != nil {
+		if err := sqlClient.DB.Close(ctx); err != nil {
 			panic(fmt.Sprintf("Error disconnecting: %v", err))
 		}
 	}()

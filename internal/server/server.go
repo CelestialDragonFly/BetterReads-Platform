@@ -12,7 +12,7 @@ type Config struct {
 }
 
 type Server struct {
-	Data        *postgres.Client
+	DB          *postgres.Client
 	OpenLibrary openlibrary.ClientInterface
 }
 
@@ -21,7 +21,7 @@ var _ betterreads.StrictServerInterface = (*Server)(nil)
 // NewServer creates a new server instance with the provided configuration.
 func NewServer(cfg *Config) *Server {
 	return &Server{
-		Data:        cfg.SQLClient,
+		DB:          cfg.SQLClient,
 		OpenLibrary: cfg.OpenLibrary,
 	}
 }
