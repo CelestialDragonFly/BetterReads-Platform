@@ -2,38 +2,36 @@ package middleware
 
 import (
 	"context"
-	"net/http"
 	"strings"
 
-	betterreads "github.com/celestialdragonfly/betterreads/generated"
 	"github.com/celestialdragonfly/betterreads/internal/auth"
 	"github.com/celestialdragonfly/betterreads/internal/headers"
-	strictnethttp "github.com/oapi-codegen/runtime/strictmiddleware/nethttp"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
 
-// Authentication is a middleware function that validates the Authorization header in incoming requests.
-// It extracts the bearer token, verifies it using the provided Authenticator, and sets the authenticated
-// user ID in the request headers if successful. If authentication fails, it responds with an error.
-//
-// Parameters:
-//   - auth: An implementation of the Authenticator interface used to verify the ID token.
-//
-// Returns:
-//   - A betterreads.StrictMiddlewareFunc that wraps an HTTP handler function, enforcing authentication.
-func Authentication(authn auth.Authenticator) betterreads.StrictMiddlewareFunc {
-	return func(f strictnethttp.StrictHTTPHandlerFunc, _ string) strictnethttp.StrictHTTPHandlerFunc {
-		return func(ctx context.Context, w http.ResponseWriter, r *http.Request, request any) (any, error) {
-			token, verifyError := authn.VerifyIDToken(ctx, strings.Replace(r.Header.Get("Authorization"), "Bearer ", "", 1))
-			if verifyError != nil {
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusUnauthorized)
-				_, _ = w.Write([]byte(`{"code": "UNAUTHORIZED", "message": "invalid authorization"}`))
-				//nolint: nilerr // error in this context is reserved for internal server errors and our open API doesn't define middleware yet.
-				return nil, nil
-			}
-
-			ctx = context.WithValue(ctx, headers.UserIDContextKey, token.UserID)
-			return f(ctx, w, r, request)
+// GRPCAuthentication creates a gRPC unary interceptor that validates the Authorization metadata.
+func GRPCAuthentication(authn auth.Authenticator) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+		md, ok := metadata.FromIncomingContext(ctx)
+		if !ok {
+			return nil, status.Error(codes.Unauthenticated, "missing metadata")
 		}
+
+		authHeader := md.Get("authorization")
+		if len(authHeader) == 0 {
+			return nil, status.Error(codes.Unauthenticated, "missing authorization header")
+		}
+
+		token := strings.TrimPrefix(authHeader[0], "Bearer ")
+		verifiedToken, err := authn.VerifyIDToken(ctx, token)
+		if err != nil {
+			return nil, status.Error(codes.Unauthenticated, "invalid token")
+		}
+
+		ctx = context.WithValue(ctx, headers.UserIDContextKey, verifiedToken.UserID)
+		return handler(ctx, req)
 	}
 }

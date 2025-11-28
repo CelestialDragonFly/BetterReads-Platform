@@ -1,0 +1,27 @@
+FROM golang:1.22-alpine
+
+RUN apk add --no-cache protobuf-dev git
+
+# Install plugins
+ENV GOBIN=/usr/local/bin
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.32.0
+RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
+RUN go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.19.0
+RUN go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.19.0
+
+# Prepare include directory
+RUN mkdir -p /usr/local/include
+
+# Get googleapis (for google/api/annotations.proto)
+WORKDIR /tmp
+RUN git clone https://github.com/googleapis/googleapis.git && \
+    cp -r googleapis/google /usr/local/include/google && \
+    rm -rf googleapis
+
+# Get grpc-gateway protos (for protoc-gen-openapiv2/options/annotations.proto)
+RUN git clone https://github.com/grpc-ecosystem/grpc-gateway.git && \
+    cp -r grpc-gateway/protoc-gen-openapiv2 /usr/local/include/ && \
+    rm -rf grpc-gateway
+
+WORKDIR /workspace
+ENTRYPOINT ["protoc"]

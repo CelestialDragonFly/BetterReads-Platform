@@ -7,51 +7,52 @@ import (
 )
 
 // (GET /api/v1/feed).
-func (s *Server) GetPersonalizedFeed(ctx context.Context, request betterreads.GetPersonalizedFeedRequestObject) (betterreads.GetPersonalizedFeedResponseObject, error) {
+// GetPersonalizedFeed implements betterreads.BetterReadsServiceServer
+func (s *Server) GetPersonalizedFeed(ctx context.Context, request *betterreads.GetPersonalizedFeedRequest) (*betterreads.GetPersonalizedFeedResponse, error) {
 	return nil, nil
 }
 
-// (GET /api/v1/feed/{user_id}).
-func (s *Server) GetUserFeed(ctx context.Context, request betterreads.GetUserFeedRequestObject) (betterreads.GetUserFeedResponseObject, error) {
+// GetUserFeed implements betterreads.BetterReadsServiceServer
+func (s *Server) GetUserFeed(ctx context.Context, request *betterreads.GetUserFeedRequest) (*betterreads.GetUserFeedResponse, error) {
 	return nil, nil
 }
 
-// (POST /api/v1/posts).
-func (s *Server) CreatePost(ctx context.Context, request betterreads.CreatePostRequestObject) (betterreads.CreatePostResponseObject, error) {
+// CreatePost implements betterreads.BetterReadsServiceServer
+func (s *Server) CreatePost(ctx context.Context, request *betterreads.CreatePostRequest) (*betterreads.CreatePostResponse, error) {
 	return nil, nil
 }
 
-// (DELETE /api/v1/posts/{post_id}).
-func (s *Server) DeletePost(ctx context.Context, request betterreads.DeletePostRequestObject) (betterreads.DeletePostResponseObject, error) {
+// DeletePost implements betterreads.BetterReadsServiceServer
+func (s *Server) DeletePost(ctx context.Context, request *betterreads.DeletePostRequest) (*betterreads.DeletePostResponse, error) {
 	return nil, nil
 }
 
-// (PUT /api/v1/posts/{post_id}).
-func (s *Server) UpdatePost(ctx context.Context, request betterreads.UpdatePostRequestObject) (betterreads.UpdatePostResponseObject, error) {
+// UpdatePost implements betterreads.BetterReadsServiceServer
+func (s *Server) UpdatePost(ctx context.Context, request *betterreads.UpdatePostRequest) (*betterreads.UpdatePostResponse, error) {
 	return nil, nil
 }
 
-// (GET /api/v1/posts/{post_id}/comments).
-func (s *Server) GetCommentsForPost(ctx context.Context, request betterreads.GetCommentsForPostRequestObject) (betterreads.GetCommentsForPostResponseObject, error) {
+// GetCommentsForPost implements betterreads.BetterReadsServiceServer
+func (s *Server) GetCommentsForPost(ctx context.Context, request *betterreads.GetCommentsForPostRequest) (*betterreads.GetCommentsForPostResponse, error) {
 	return nil, nil
 }
 
-// (POST /api/v1/posts/{post_id}/comments).
-func (s *Server) AddComment(ctx context.Context, request betterreads.AddCommentRequestObject) (betterreads.AddCommentResponseObject, error) {
+// AddComment implements betterreads.BetterReadsServiceServer
+func (s *Server) AddComment(ctx context.Context, request *betterreads.AddCommentRequest) (*betterreads.AddCommentResponse, error) {
 	return nil, nil
 }
 
-// (DELETE /api/v1/posts/{post_id}/comments/{comment_id}).
-func (s *Server) DeleteComment(ctx context.Context, request betterreads.DeleteCommentRequestObject) (betterreads.DeleteCommentResponseObject, error) {
+// DeleteComment implements betterreads.BetterReadsServiceServer
+func (s *Server) DeleteComment(ctx context.Context, request *betterreads.DeleteCommentRequest) (*betterreads.DeleteCommentResponse, error) {
 	return nil, nil
 }
 
-// (POST /api/v1/posts/{post_id}/like).
-func (s *Server) LikePost(ctx context.Context, request betterreads.LikePostRequestObject) (betterreads.LikePostResponseObject, error) {
+// LikePost implements betterreads.BetterReadsServiceServer
+func (s *Server) LikePost(ctx context.Context, request *betterreads.LikePostRequest) (*betterreads.LikePostResponse, error) {
 	return nil, nil
 }
 
-// (DELETE /api/v1/posts/{post_id}/unlike).
-func (s *Server) UnlikePost(ctx context.Context, request betterreads.UnlikePostRequestObject) (betterreads.UnlikePostResponseObject, error) {
+// UnlikePost implements betterreads.BetterReadsServiceServer
+func (s *Server) UnlikePost(ctx context.Context, request *betterreads.UnlikePostRequest) (*betterreads.UnlikePostResponse, error) {
 	return nil, nil
 }

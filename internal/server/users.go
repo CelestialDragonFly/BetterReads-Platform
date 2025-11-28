@@ -7,16 +7,26 @@ import (
 )
 
 // (GET /api/v1/users/{user_id}).
-func (s *Server) GetUserById(ctx context.Context, request betterreads.GetUserByIdRequestObject) (betterreads.GetUserByIdResponseObject, error) {
-	return nil, nil
+// GetUserById implements betterreads.BetterReadsServiceServer
+func (s *Server) GetUserById(
+	ctx context.Context,
+	request *betterreads.GetUserByIdRequest,
+) (*betterreads.GetUserResponse, error) {
+	return &betterreads.GetUserResponse{}, nil
 }
 
-// (POST /api/v1/users/{user_id}/follow).
-func (s *Server) FollowUser(ctx context.Context, request betterreads.FollowUserRequestObject) (betterreads.FollowUserResponseObject, error) {
-	return nil, nil
+// FollowUser implements betterreads.BetterReadsServiceServer
+func (s *Server) FollowUser(
+	ctx context.Context,
+	request *betterreads.FollowUserRequest,
+) (*betterreads.FollowUserResponse, error) {
+	return &betterreads.FollowUserResponse{}, nil
 }
 
-// (DELETE /api/v1/users/{user_id}/unfollow).
-func (s *Server) UnfollowUser(ctx context.Context, request betterreads.UnfollowUserRequestObject) (betterreads.UnfollowUserResponseObject, error) {
-	return nil, nil
+// UnfollowUser implements betterreads.BetterReadsServiceServer
+func (s *Server) UnfollowUser(
+	ctx context.Context,
+	request *betterreads.UnfollowUserRequest,
+) (*betterreads.UnfollowUserResponse, error) {
+	return &betterreads.UnfollowUserResponse{}, nil
 }

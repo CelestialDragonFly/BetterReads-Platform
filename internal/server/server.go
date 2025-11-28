@@ -12,11 +12,12 @@ type Config struct {
 }
 
 type Server struct {
+	betterreads.UnimplementedBetterReadsServiceServer
 	DB          *postgres.Client
 	OpenLibrary openlibrary.ClientInterface
 }
 
-var _ betterreads.StrictServerInterface = (*Server)(nil)
+var _ betterreads.BetterReadsServiceServer = (*Server)(nil)
 
 // NewServer creates a new server instance with the provided configuration.
 func NewServer(cfg *Config) *Server {
