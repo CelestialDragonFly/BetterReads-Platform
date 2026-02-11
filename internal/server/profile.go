@@ -8,13 +8,12 @@ import (
 	betterreads "github.com/celestialdragonfly/betterreads/generated"
 	"github.com/celestialdragonfly/betterreads/internal/data"
 	"github.com/celestialdragonfly/betterreads/internal/headers"
+	"github.com/celestialdragonfly/betterreads/internal/log"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // DeleteUserProfile implements betterreads.BetterReadsServiceServer
-func (s *Server) DeleteUserProfile(
-	ctx context.Context,
-	request *betterreads.DeleteUserProfileRequest,
-) (*betterreads.DeleteUserProfileResponse, error) {
+func (s *Server) DeleteUserProfile(ctx context.Context, request *betterreads.DeleteUserProfileRequest) (*betterreads.DeleteUserProfileResponse, error) {
 	userID, ok := headers.GetUserID(ctx)
 	if !ok {
 		return nil, errors.New("unable to retrieve user_id from context")
@@ -28,10 +27,7 @@ func (s *Server) DeleteUserProfile(
 }
 
 // GetCurrentUserProfile implements betterreads.BetterReadsServiceServer
-func (s *Server) GetCurrentUserProfile(
-	ctx context.Context,
-	request *betterreads.GetCurrentUserProfileRequest,
-) (*betterreads.GetProfileResponse, error) {
+func (s *Server) GetCurrentUserProfile(ctx context.Context, request *betterreads.GetCurrentUserProfileRequest) (*betterreads.GetCurrentUserProfileResponse, error) {
 	userID, ok := headers.GetUserID(ctx)
 	if !ok {
 		return nil, errors.New("unable to retrieve user_id from context")
@@ -42,33 +38,30 @@ func (s *Server) GetCurrentUserProfile(
 		return nil, err
 	}
 
-	return &betterreads.GetProfileResponse{
-		CreatedAt:    profile.GetCreatedAt(),
-		Email:        profile.GetEmail(),
-		FirstName:    profile.GetFirstName(),
-		Id:           profile.GetID(),
-		LastName:     profile.GetLastName(),
-		ProfilePhoto: profile.GetProfilePhoto(),
-		Username:     profile.GetUsername(),
+	return &betterreads.GetCurrentUserProfileResponse{
+		CreatedAt:       timestamppb.New(profile.GetCreatedAt()),
+		Email:           profile.GetEmail(),
+		FirstName:       profile.GetFirstName(),
+		Id:              profile.GetID(),
+		LastName:        profile.GetLastName(),
+		ProfilePhotoUrl: profile.GetProfilePhotoURL(),
+		Username:        profile.GetUsername(),
 	}, nil
 }
 
 // UpdateUserProfile implements betterreads.BetterReadsServiceServer
-func (s *Server) UpdateUserProfile(
-	ctx context.Context,
-	request *betterreads.UpdateUserProfileRequest,
-) (*betterreads.UpdateProfileResponse, error) {
+func (s *Server) UpdateUserProfile(ctx context.Context, request *betterreads.UpdateUserProfileRequest) (*betterreads.UpdateUserProfileResponse, error) {
 	userID, ok := headers.GetUserID(ctx)
 	if !ok {
 		return nil, errors.New("unable to retrieve user_id from context")
 	}
 
 	update := data.User{
-		Username:     &request.Username,
-		FirstName:    &request.FirstName,
-		LastName:     &request.LastName,
-		Email:        &request.Email,
-		ProfilePhoto: &request.ProfilePhoto,
+		Username:        request.Username,
+		FirstName:       request.FirstName,
+		LastName:        request.LastName,
+		Email:           request.Email,
+		ProfilePhotoURL: request.ProfilePhotoUrl,
 	}
 
 	updatedUser, err := s.DB.ProfileUpdate(ctx, userID, &update)
@@ -76,34 +69,31 @@ func (s *Server) UpdateUserProfile(
 		return nil, err
 	}
 
-	return &betterreads.UpdateProfileResponse{
-		CreatedAt:    updatedUser.GetCreatedAt(),
-		Email:        updatedUser.GetEmail(),
-		FirstName:    updatedUser.GetFirstName(),
-		Id:           updatedUser.GetID(),
-		LastName:     updatedUser.GetLastName(),
-		ProfilePhoto: updatedUser.GetProfilePhoto(),
-		Username:     updatedUser.GetUsername(),
+	return &betterreads.UpdateUserProfileResponse{
+		CreatedAt:       timestamppb.New(updatedUser.GetCreatedAt()),
+		Email:           updatedUser.GetEmail(),
+		FirstName:       updatedUser.GetFirstName(),
+		Id:              updatedUser.GetID(),
+		LastName:        updatedUser.GetLastName(),
+		ProfilePhotoUrl: updatedUser.GetProfilePhotoURL(),
+		Username:        updatedUser.GetUsername(),
 	}, nil
 }
 
 // CreateUserProfile implements betterreads.BetterReadsServiceServer
-func (s *Server) CreateUserProfile(
-	ctx context.Context,
-	request *betterreads.CreateUserProfileRequest,
-) (*betterreads.CreateProfileResponse, error) {
+func (s *Server) CreateUserProfile(ctx context.Context, request *betterreads.CreateUserProfileRequest) (*betterreads.CreateUserProfileResponse, error) {
 	userID, ok := headers.GetUserID(ctx)
 	if !ok {
 		return nil, errors.New("unable to retrieve user_id from context")
 	}
 
 	newProfile := data.User{
-		ID:           &userID,
-		Username:     &request.Username,
-		FirstName:    &request.FirstName,
-		LastName:     &request.LastName,
-		Email:        &request.Email,
-		ProfilePhoto: &request.ProfilePhoto,
+		ID:              userID,
+		Username:        request.Username,
+		FirstName:       request.FirstName,
+		LastName:        request.LastName,
+		Email:           request.Email,
+		ProfilePhotoURL: request.ProfilePhotoUrl,
 	}
 
 	if len(newProfile.GetUsername()) < 3 {
@@ -119,19 +109,22 @@ func (s *Server) CreateUserProfile(
 		return nil, err
 	}
 
-	return &betterreads.CreateProfileResponse{
-		CreatedAt:    createdProfile.GetCreatedAt(),
-		Email:        createdProfile.GetEmail(),
-		FirstName:    createdProfile.GetFirstName(),
-		Id:           createdProfile.GetID(),
-		LastName:     createdProfile.GetLastName(),
-		ProfilePhoto: createdProfile.GetProfilePhoto(),
-		Username:     createdProfile.GetUsername(),
+	return &betterreads.CreateUserProfileResponse{
+		CreatedAt:       timestamppb.New(createdProfile.GetCreatedAt()),
+		Email:           createdProfile.GetEmail(),
+		FirstName:       createdProfile.GetFirstName(),
+		Id:              createdProfile.GetID(),
+		LastName:        createdProfile.GetLastName(),
+		ProfilePhotoUrl: createdProfile.GetProfilePhotoURL(),
+		Username:        createdProfile.GetUsername(),
 	}, nil
 }
 
 // isValidEmail checks whether the given string is a valid email address.
 func isValidEmail(email string) bool {
-	_, err := mail.ParseAddress(email)
-	return err == nil
+	if _, err := mail.ParseAddress(email); err != nil {
+		log.Error("Invalid email address", "email", email, "error", err)
+		return false
+	}
+	return true
 }

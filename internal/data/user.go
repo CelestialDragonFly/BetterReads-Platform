@@ -1,60 +1,62 @@
 package data
 
+import "time"
+
 type User struct {
-	ID           *string
-	Username     *string
-	FirstName    *string
-	LastName     *string
-	Email        *string
-	ProfilePhoto *string
-	CreatedAt    *string
+	ID              string
+	Username        string
+	FirstName       string
+	LastName        string
+	Email           string
+	ProfilePhotoURL string
+	CreatedAt       time.Time
 }
 
 func (u *User) GetID() string {
-	if u == nil || u.ID == nil {
+	if u == nil {
 		return ""
 	}
-	return *u.ID
+	return u.ID
 }
 
 func (u *User) GetUsername() string {
-	if u == nil || u.Username == nil {
+	if u == nil {
 		return ""
 	}
-	return *u.Username
+	return u.Username
 }
 
 func (u *User) GetFirstName() string {
-	if u == nil || u.FirstName == nil {
+	if u == nil {
 		return ""
 	}
-	return *u.FirstName
+	return u.FirstName
 }
 
 func (u *User) GetLastName() string {
-	if u == nil || u.LastName == nil {
+	if u == nil {
 		return ""
 	}
-	return *u.LastName
+	return u.LastName
 }
 
 func (u *User) GetEmail() string {
-	if u == nil || u.Email == nil {
+	if u == nil {
 		return ""
 	}
-	return *u.Email
+	return u.Email
 }
 
-func (u *User) GetProfilePhoto() string {
-	if u == nil || u.ProfilePhoto == nil {
+func (u *User) GetProfilePhotoURL() string {
+	if u == nil {
 		return ""
 	}
-	return *u.ProfilePhoto
+	return u.ProfilePhotoURL
 }
 
-func (u *User) GetCreatedAt() string {
-	if u == nil || u.CreatedAt == nil {
-		return ""
+func (u *User) GetCreatedAt() time.Time {
+	if u == nil {
+		return time.Time{}
 	}
-	return *u.CreatedAt
+	return u.CreatedAt
 }

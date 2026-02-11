@@ -5,16 +5,16 @@ import (
 	"errors"
 
 	betterreads "github.com/celestialdragonfly/betterreads/generated"
+	"github.com/celestialdragonfly/betterreads/internal/openlibrary"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // (GET /api/v1/books).
 // SearchBooks implements betterreads.BetterReadsServiceServer
-func (s *Server) SearchBooks(
-	ctx context.Context,
-	request *betterreads.SearchBooksRequest,
-) (*betterreads.SearchBooksResponse, error) {
+func (s *Server) SearchBooks(ctx context.Context, request *betterreads.SearchBooksRequest) (*betterreads.SearchBooksResponse, error) {
 	if err := verifySearchBooksRequest(request); err != nil {
-		return nil, err // TODO: Return gRPC status error
+		return nil, err
 	}
 
 	searchResult, err := s.OpenLibrary.SearchBooks(
@@ -25,8 +25,16 @@ func (s *Server) SearchBooks(
 		&request.Subject,
 	)
 	if err != nil {
-		// TODO: Map errors to gRPC codes
-		return nil, err
+		switch {
+		case errors.Is(err, openlibrary.ErrBadRequest):
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		case errors.Is(err, openlibrary.ErrNotFound):
+			return nil, status.Error(codes.NotFound, err.Error())
+		case errors.Is(err, openlibrary.ErrInternalServer):
+			return nil, status.Error(codes.Internal, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
 	}
 
 	books := make([]*betterreads.Book, 0)
@@ -41,7 +49,7 @@ func (s *Server) SearchBooks(
 			Isbn:          book.ISBN,
 			RatingCount:   int32(book.RatingCount),
 			RatingAverage: float32(book.RatingAverage),
-			Source:        "OpenLibrary", // TODO: Use enum if defined
+			Source:        betterreads.BookSource_BOOK_SOURCE_OPEN_LIBRARY,
 		})
 	}
 	return &betterreads.SearchBooksResponse{
@@ -54,7 +62,7 @@ func verifySearchBooksRequest(request *betterreads.SearchBooksRequest) error {
 		request.Title == "" &&
 		request.Author == "" &&
 		request.Subject == "" {
-		return errors.New("must pass one search parameter")
+		return status.Error(codes.InvalidArgument, "must pass one search parameter")
 	}
 	return nil
 }

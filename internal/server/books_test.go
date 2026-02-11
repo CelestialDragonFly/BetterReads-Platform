@@ -54,7 +54,7 @@ func TestServer_SearchBooks_Success(t *testing.T) {
 				RatingAverage:   4.5,
 				RatingCount:     100,
 				PublishYear:     2020,
-				Source:          string(betterreads.BookSource_OPEN_LIBRARY),
+				Source:          string(betterreads.BookSource_BOOK_SOURCE_OPEN_LIBRARY),
 			},
 		},
 	}
@@ -82,7 +82,7 @@ func TestServer_SearchBooks_Success(t *testing.T) {
 	assert.Equal(t, float32(4.5), resp.Books[0].RatingAverage)
 	assert.Equal(t, int32(100), resp.Books[0].RatingCount)
 	assert.Equal(t, int32(2020), resp.Books[0].PublishedYear)
-	assert.Equal(t, betterreads.BookSource_OPEN_LIBRARY, resp.Books[0].Source)
+	assert.Equal(t, betterreads.BookSource_BOOK_SOURCE_OPEN_LIBRARY, resp.Books[0].Source)
 
 	// Verify mock expectations
 	mockClient.AssertExpectations(t)
@@ -227,7 +227,7 @@ func TestServer_SearchBooks_MultipleBooks(t *testing.T) {
 				RatingAverage:   4.5,
 				RatingCount:     100,
 				PublishYear:     2020,
-				Source:          string(betterreads.BookSource_OPEN_LIBRARY),
+				Source:          string(betterreads.BookSource_BOOK_SOURCE_OPEN_LIBRARY),
 			},
 			{
 				AuthorKey:       "OL789A",
@@ -239,7 +239,7 @@ func TestServer_SearchBooks_MultipleBooks(t *testing.T) {
 				RatingAverage:   3.8,
 				RatingCount:     75,
 				PublishYear:     2018,
-				Source:          string(betterreads.BookSource_OPEN_LIBRARY),
+				Source:          string(betterreads.BookSource_BOOK_SOURCE_OPEN_LIBRARY),
 			},
 			{
 				AuthorKey:       "OL456A",
@@ -251,7 +251,7 @@ func TestServer_SearchBooks_MultipleBooks(t *testing.T) {
 				RatingAverage:   4.2,
 				RatingCount:     50,
 				PublishYear:     2022,
-				Source:          string(betterreads.BookSource_OPEN_LIBRARY),
+				Source:          string(betterreads.BookSource_BOOK_SOURCE_OPEN_LIBRARY),
 			},
 		},
 	}
@@ -279,7 +279,7 @@ func TestServer_SearchBooks_MultipleBooks(t *testing.T) {
 	assert.Equal(t, float32(4.5), resp.Books[0].RatingAverage)
 	assert.Equal(t, int32(100), resp.Books[0].RatingCount)
 	assert.Equal(t, int32(2020), resp.Books[0].PublishedYear)
-	assert.Equal(t, betterreads.BookSource_OPEN_LIBRARY, resp.Books[0].Source)
+	assert.Equal(t, betterreads.BookSource_BOOK_SOURCE_OPEN_LIBRARY, resp.Books[0].Source)
 
 	// Verify second book
 	assert.Equal(t, "OL101M", resp.Books[1].Id)
@@ -291,7 +291,7 @@ func TestServer_SearchBooks_MultipleBooks(t *testing.T) {
 	assert.Equal(t, float32(3.8), resp.Books[1].RatingAverage)
 	assert.Equal(t, int32(75), resp.Books[1].RatingCount)
 	assert.Equal(t, int32(2018), resp.Books[1].PublishedYear)
-	assert.Equal(t, betterreads.BookSource_OPEN_LIBRARY, resp.Books[1].Source)
+	assert.Equal(t, betterreads.BookSource_BOOK_SOURCE_OPEN_LIBRARY, resp.Books[1].Source)
 
 	// Verify third book
 	assert.Equal(t, "OL202M", resp.Books[2].Id)
@@ -303,7 +303,7 @@ func TestServer_SearchBooks_MultipleBooks(t *testing.T) {
 	assert.Equal(t, float32(4.2), resp.Books[2].RatingAverage)
 	assert.Equal(t, int32(50), resp.Books[2].RatingCount)
 	assert.Equal(t, int32(2022), resp.Books[2].PublishedYear)
-	assert.Equal(t, betterreads.BookSource_OPEN_LIBRARY, resp.Books[2].Source)
+	assert.Equal(t, betterreads.BookSource_BOOK_SOURCE_OPEN_LIBRARY, resp.Books[2].Source)
 
 	// Verify mock expectations
 	mockClient.AssertExpectations(t)

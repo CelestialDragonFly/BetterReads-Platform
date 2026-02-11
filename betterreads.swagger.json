@@ -829,6 +829,9 @@
     "betterreadsBook": {
       "type": "object",
       "properties": {
+        "id": {
+          "type": "string"
+        },
         "authorId": {
           "type": "string"
         },
@@ -836,9 +839,6 @@
           "type": "string"
         },
         "bookImage": {
-          "type": "string"
-        },
-        "id": {
           "type": "string"
         },
         "isbn": {
@@ -867,10 +867,13 @@
     "betterreadsBookDetails": {
       "type": "object",
       "properties": {
+        "id": {
+          "type": "string"
+        },
         "author": {
           "type": "string"
         },
-        "id": {
+        "title": {
           "type": "string"
         },
         "imageUrl": {
@@ -878,9 +881,6 @@
         },
         "rating": {
           "$ref": "#/definitions/betterreadsBookRating"
-        },
-        "title": {
-          "type": "string"
         }
       },
       "title": "Unified book details for posts - includes user's rating and review info"
@@ -920,14 +920,10 @@
     "betterreadsComment": {
       "type": "object",
       "properties": {
-        "content": {
+        "id": {
           "type": "string"
         },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "id": {
+        "content": {
           "type": "string"
         },
         "postId": {
@@ -935,6 +931,10 @@
         },
         "userId": {
           "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
         }
       }
     },
@@ -984,8 +984,28 @@
     "betterreadsCreateUserProfileResponse": {
       "type": "object",
       "properties": {
-        "profile": {
-          "$ref": "#/definitions/betterreadsUserProfile"
+        "id": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "profilePhotoUrl": {
+          "type": "string",
+          "title": "URL to profile photo"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
         }
       }
     },
@@ -1019,8 +1039,28 @@
     "betterreadsGetCurrentUserProfileResponse": {
       "type": "object",
       "properties": {
-        "profile": {
-          "$ref": "#/definitions/betterreadsUserProfile"
+        "id": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "profilePhotoUrl": {
+          "type": "string",
+          "title": "URL to profile photo"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
         }
       }
     },
@@ -1158,18 +1198,14 @@
     "betterreadsPost": {
       "type": "object",
       "properties": {
-        "book": {
-          "$ref": "#/definitions/betterreadsBookDetails"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time"
+        "id": {
+          "type": "string"
         },
         "description": {
           "type": "string"
         },
-        "id": {
-          "type": "string"
+        "book": {
+          "$ref": "#/definitions/betterreadsBookDetails"
         },
         "likeCount": {
           "type": "integer",
@@ -1184,6 +1220,10 @@
         "commentCount": {
           "type": "integer",
           "format": "int32"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
         }
       }
     },
@@ -1270,14 +1310,6 @@
       }
     },
     "betterreadsUpdateUserProfileResponse": {
-      "type": "object",
-      "properties": {
-        "profile": {
-          "$ref": "#/definitions/betterreadsUserProfile"
-        }
-      }
-    },
-    "betterreadsUserProfile": {
       "type": "object",
       "properties": {
         "id": {
