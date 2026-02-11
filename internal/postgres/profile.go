@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/celestialdragonfly/betterreads/internal/data"
 	"github.com/jackc/pgx/v5"
@@ -30,7 +31,7 @@ func (db *Client) ProfileCreate(ctx context.Context, profile *data.User) (*data.
 		RETURNING created_at;
 	`
 
-	var createdAt string
+	var createdAt time.Time
 
 	err := db.DB.QueryRow(
 		ctx,
@@ -40,7 +41,7 @@ func (db *Client) ProfileCreate(ctx context.Context, profile *data.User) (*data.
 		profile.FirstName,
 		profile.LastName,
 		profile.Email,
-		profile.ProfilePhoto,
+		profile.ProfilePhotoURL,
 	).Scan(&createdAt)
 
 	if err != nil {
@@ -60,7 +61,7 @@ func (db *Client) ProfileCreate(ctx context.Context, profile *data.User) (*data.
 		return nil, fmt.Errorf("%w: %w", ErrInsertUser, err)
 	}
 
-	profile.CreatedAt = &createdAt
+	profile.CreatedAt = createdAt
 
 	return profile, nil
 }
@@ -80,7 +81,7 @@ func (db *Client) ProfileGet(ctx context.Context, id string) (*data.User, error)
 		&user.FirstName,
 		&user.LastName,
 		&user.Email,
-		&user.ProfilePhoto,
+		&user.ProfilePhotoURL,
 		&user.CreatedAt,
 	)
 
@@ -100,29 +101,29 @@ func (db *Client) ProfileUpdate(ctx context.Context, id string, updates *data.Us
 	args := []any{}
 	argPos := 1
 
-	if updates.Username != nil || updates.GetUsername() == "" {
+	if updates.GetUsername() == "" {
 		setClauses = append(setClauses, fmt.Sprintf("username = $%d", argPos))
-		args = append(args, *updates.Username)
+		args = append(args, updates.Username)
 		argPos++
 	}
-	if updates.FirstName != nil || updates.GetFirstName() == "" {
+	if updates.GetFirstName() == "" {
 		setClauses = append(setClauses, fmt.Sprintf("first_name = $%d", argPos))
-		args = append(args, *updates.FirstName)
+		args = append(args, updates.FirstName)
 		argPos++
 	}
-	if updates.LastName != nil || updates.GetLastName() == "" {
+	if updates.GetLastName() == "" {
 		setClauses = append(setClauses, fmt.Sprintf("last_name = $%d", argPos))
-		args = append(args, *updates.LastName)
+		args = append(args, updates.LastName)
 		argPos++
 	}
-	if updates.Email != nil || updates.GetEmail() == "" {
+	if updates.GetEmail() == "" {
 		setClauses = append(setClauses, fmt.Sprintf("email = $%d", argPos))
-		args = append(args, *updates.Email)
+		args = append(args, updates.Email)
 		argPos++
 	}
-	if updates.ProfilePhoto != nil || updates.GetProfilePhoto() == "" {
+	if updates.GetProfilePhotoURL() == "" {
 		setClauses = append(setClauses, fmt.Sprintf("profile_photo = $%d", argPos))
-		args = append(args, *updates.ProfilePhoto)
+		args = append(args, updates.ProfilePhotoURL)
 		argPos++
 	}
 
@@ -151,7 +152,7 @@ func (db *Client) ProfileUpdate(ctx context.Context, id string, updates *data.Us
 		&updated.FirstName,
 		&updated.LastName,
 		&updated.Email,
-		&updated.ProfilePhoto,
+		&updated.ProfilePhotoURL,
 		&updated.CreatedAt,
 	)
 
@@ -209,7 +210,7 @@ func registerUser(ctx context.Context, db *pgx.Conn) error {
 		last_name TEXT NOT NULL,
 		email TEXT NOT NULL UNIQUE,
 		profile_photo TEXT,
-		created_at TIMESTAMP NOT NULL DEFAULT NOW()
+		created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 	);
 `
 	if _, err := db.Exec(ctx, createUsersTable); err != nil {

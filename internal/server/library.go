@@ -6,17 +6,17 @@ import (
 	betterreads "github.com/celestialdragonfly/betterreads/generated"
 )
 
-// (DELETE /api/v1/library).
-func (s *Server) RemoveLibraryBook(ctx context.Context, request betterreads.RemoveLibraryBookRequestObject) (betterreads.RemoveLibraryBookResponseObject, error) {
+// RemoveLibraryBook
+func (s *Server) RemoveLibraryBook(ctx context.Context, request *betterreads.RemoveLibraryBookRequest) (*betterreads.RemoveLibraryBookResponse, error) {
 	return nil, nil
 }
 
-// (PUT /api/v1/library).
-func (s *Server) UpdateLibraryBook(ctx context.Context, request betterreads.UpdateLibraryBookRequestObject) (betterreads.UpdateLibraryBookResponseObject, error) {
-	return nil, nil
+// UpdateLibraryBook
+func (s *Server) UpdateLibraryBook(ctx context.Context, request *betterreads.UpdateLibraryBookRequest) (*betterreads.UpdateLibraryBookResponse, error) {
+	return &betterreads.UpdateLibraryBookResponse{}, nil
 }
 
-// (GET /api/v1/library/{user_id}).
-func (s *Server) GetUserLibrary(ctx context.Context, request betterreads.GetUserLibraryRequestObject) (betterreads.GetUserLibraryResponseObject, error) {
+// GetUserLibrary
+func (s *Server) GetUserLibrary(ctx context.Context, request *betterreads.GetUserLibraryRequest) (*betterreads.GetUserLibraryResponse, error) {
 	return nil, nil
 }

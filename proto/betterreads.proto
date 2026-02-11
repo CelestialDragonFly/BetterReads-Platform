@@ -1,0 +1,495 @@
+syntax = "proto3";
+
+package betterreads;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option go_package = "github.com/celestialdragonfly/betterreads/generated;betterreads";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    title: "BetterReads API";
+    version: "1.0.0";
+    description: "BetterReads API";
+  };
+  schemes: HTTP;
+  schemes: HTTPS;
+  consumes: "application/json";
+  produces: "application/json";
+};
+
+service BetterReadsService {
+  // Search for books
+  rpc SearchBooks(SearchBooksRequest) returns (SearchBooksResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/books"
+    };
+  }
+
+  // Get personalized feed
+  rpc GetPersonalizedFeed(GetPersonalizedFeedRequest) returns (GetPersonalizedFeedResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/feed"
+    };
+  }
+
+  // Get user's public posts
+  rpc GetUserFeed(GetUserFeedRequest) returns (GetUserFeedResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/feed/{user_id}"
+    };
+  }
+
+  // Remove book from library
+  rpc RemoveLibraryBook(RemoveLibraryBookRequest) returns (RemoveLibraryBookResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/library"
+    };
+  }
+
+  // Add or update book in library
+  rpc UpdateLibraryBook(UpdateLibraryBookRequest) returns (UpdateLibraryBookResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/library"
+      body: "*"
+    };
+  }
+
+  // Get user's library
+  rpc GetUserLibrary(GetUserLibraryRequest) returns (GetUserLibraryResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/library/{user_id}"
+    };
+  }
+
+  // Create a new post
+  rpc CreatePost(CreatePostRequest) returns (CreatePostResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/posts"
+      body: "*"
+    };
+  }
+
+  // Delete a post
+  rpc DeletePost(DeletePostRequest) returns (DeletePostResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/posts/{post_id}"
+    };
+  }
+
+  // Update a post
+  rpc UpdatePost(UpdatePostRequest) returns (UpdatePostResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/posts/{post_id}"
+      body: "*"
+    };
+  }
+
+  // Retrieve comments for a post
+  rpc GetCommentsForPost(GetCommentsForPostRequest) returns (GetCommentsForPostResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/posts/{post_id}/comments"
+    };
+  }
+
+  // Add a comment to a post
+  rpc AddComment(AddCommentRequest) returns (AddCommentResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/posts/{post_id}/comments"
+      body: "*"
+    };
+  }
+
+  // Delete a specific comment from a post
+  rpc DeleteComment(DeleteCommentRequest) returns (DeleteCommentResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/posts/{post_id}/comments/{comment_id}"
+    };
+  }
+
+  // Like a post
+  rpc LikePost(LikePostRequest) returns (LikePostResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/posts/{post_id}/like"
+    };
+  }
+
+  // Unlike a post
+  rpc UnlikePost(UnlikePostRequest) returns (UnlikePostResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/posts/{post_id}/unlike"
+    };
+  }
+
+  // Delete user profile
+  rpc DeleteUserProfile(DeleteUserProfileRequest) returns (DeleteUserProfileResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/profile"
+    };
+  }
+
+  // Get current user profile
+  rpc GetCurrentUserProfile(GetCurrentUserProfileRequest) returns (GetCurrentUserProfileResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/profile"
+    };
+  }
+
+  // Update user profile
+  rpc UpdateUserProfile(UpdateUserProfileRequest) returns (UpdateUserProfileResponse) {
+    option (google.api.http) = {
+      patch: "/api/v1/profile"
+      body: "*"
+    };
+  }
+
+  // Create user profile
+  rpc CreateUserProfile(CreateUserProfileRequest) returns (CreateUserProfileResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/profile"
+      body: "*"
+    };
+  }
+
+  // Get user information
+  rpc GetUserById(GetUserByIdRequest) returns (GetUserByIdResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/users/{user_id}"
+    };
+  }
+
+  // Follow a user
+  rpc FollowUser(FollowUserRequest) returns (FollowUserResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/users/{user_id}/follow"
+    };
+  }
+
+  // Unfollow a user
+  rpc UnfollowUser(UnfollowUserRequest) returns (UnfollowUserResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/users/{user_id}/unfollow"
+    };
+  }
+}
+
+// Enums
+
+enum BookSource {
+  BOOK_SOURCE_UNSPECIFIED = 0;
+  BOOK_SOURCE_GOOGLE_BOOKS = 1;
+  BOOK_SOURCE_OPEN_LIBRARY = 2;
+  BOOK_SOURCE_MANUAL = 3;
+}
+
+enum BookRating {
+  BOOK_RATING_UNSPECIFIED = 0;
+  BOOK_RATING_ONE_STAR = 1;
+  BOOK_RATING_TWO_STAR = 2;
+  BOOK_RATING_THREE_STAR = 3;
+  BOOK_RATING_FOUR_STAR = 4;
+  BOOK_RATING_FIVE_STAR = 5;
+}
+
+enum BookShelf {
+  BOOK_SHELF_UNSPECIFIED = 0;
+  BOOK_SHELF_WANT_TO_READ = 1;
+  BOOK_SHELF_CURRENTLY_READING = 2;
+  BOOK_SHELF_READ = 3;
+}
+
+enum LibraryFilter {
+  LIBRARY_FILTER_UNSPECIFIED = 0;
+  LIBRARY_FILTER_ALL = 1;
+  LIBRARY_FILTER_WANT_TO_READ = 2;
+  LIBRARY_FILTER_CURRENTLY_READING = 3;
+  LIBRARY_FILTER_READ = 4;
+}
+
+enum LibrarySort {
+  LIBRARY_SORT_UNSPECIFIED = 0;
+  LIBRARY_SORT_TITLE_ASC = 1;
+  LIBRARY_SORT_TITLE_DESC = 2;
+  LIBRARY_SORT_AUTHOR_ASC = 3;
+  LIBRARY_SORT_AUTHOR_DESC = 4;
+  LIBRARY_SORT_DATE_ADDED_ASC = 5;
+  LIBRARY_SORT_DATE_ADDED_DESC = 6;
+}
+
+// Common message types
+
+message PaginationMetadata {
+  int32 page = 1;
+  int32 limit = 2;
+  int32 total = 3;
+}
+
+message Book {
+  string id = 1;
+  string author_id = 2;
+  string author_name = 3;
+  string book_image = 4;
+  string isbn = 5;
+  int32 published_year = 6;
+  float rating_average = 7;
+  int32 rating_count = 8;
+  BookSource source = 9;
+  string title = 10;
+}
+
+// Unified book details for posts - includes user's rating and review info
+message BookDetails {
+  string id = 1;
+  string author = 2;
+  string title = 3;
+  string image_url = 4;
+  BookRating rating = 5;
+}
+
+message Post {
+  string id = 1;
+  string description = 2;
+  BookDetails book = 3;
+  int32 like_count = 4;
+  string summary = 5;
+  string user_id = 6;
+  int32 comment_count = 7;
+  google.protobuf.Timestamp created_at = 8;
+}
+
+message Comment {
+  string id = 1;
+  string content = 2;
+  string post_id = 3;
+  string user_id = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+message LibraryBook {
+  string author_name = 1;
+  string book_id = 2;
+  string book_image = 3;
+  BookRating rating = 4;
+  BookShelf shelf = 5;
+  BookSource source = 6;
+  string title = 7;
+  google.protobuf.Timestamp added_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+message UserPublicInfo {
+  string id = 1;
+  string username = 2;
+  string first_name = 3;
+  string last_name = 4;
+  string profile_photo_url = 5; // URL to profile photo
+}
+
+// RPC Request/Response pairs (in order of service definition)
+
+message SearchBooksRequest {
+  string query = 1;
+  string title = 2;
+  string author = 3;
+  string subject = 4;
+  int32 page = 5;
+  int32 limit = 6;
+}
+
+message SearchBooksResponse {
+  repeated Book books = 1;
+  PaginationMetadata pagination = 2;
+}
+
+message GetPersonalizedFeedRequest {
+  int32 page = 1;
+  int32 limit = 2;
+  google.protobuf.Timestamp since = 3;
+}
+
+message GetPersonalizedFeedResponse {
+  repeated Post posts = 1;
+  PaginationMetadata pagination = 2;
+}
+
+message GetUserFeedRequest {
+  string user_id = 1;
+  int32 page = 2;
+  int32 limit = 3;
+}
+
+message GetUserFeedResponse {
+  repeated Post posts = 1;
+  PaginationMetadata pagination = 2;
+}
+
+message RemoveLibraryBookRequest {
+  string book_id = 1;
+}
+
+message RemoveLibraryBookResponse {}
+
+message UpdateLibraryBookRequest {
+  string author_name = 1;
+  string book_id = 2;
+  string book_image = 3;
+  BookShelf shelf = 4;
+  BookSource source = 5;
+  string title = 6;
+  BookRating rating = 7;
+}
+
+message UpdateLibraryBookResponse {}
+
+message GetUserLibraryRequest {
+  string user_id = 1;
+  LibraryFilter filter = 2;
+  int32 page = 3;
+  int32 limit = 4;
+  LibrarySort sort = 5;
+}
+
+message GetUserLibraryResponse {
+  repeated LibraryBook library = 1;
+  PaginationMetadata pagination = 2;
+}
+
+message CreatePostRequest {
+  BookDetails book = 1;
+  string description = 2;
+  string summary = 3;
+}
+
+message CreatePostResponse {
+  Post post = 1;
+}
+
+message DeletePostRequest {
+  string post_id = 1;
+}
+
+message DeletePostResponse {}
+
+message UpdatePostRequest {
+  string post_id = 1; // Path param
+  BookDetails book = 2;
+  string description = 3;
+  string summary = 4;
+}
+
+message UpdatePostResponse {
+  Post post = 1;
+}
+
+message GetCommentsForPostRequest {
+  string post_id = 1;
+  int32 page = 2;
+  int32 limit = 3;
+}
+
+message GetCommentsForPostResponse {
+  repeated Comment comments = 1;
+  PaginationMetadata pagination = 2;
+}
+
+message AddCommentRequest {
+  string post_id = 1;
+  string content = 2;
+}
+
+message AddCommentResponse {
+  Comment comment = 1;
+}
+
+message DeleteCommentRequest {
+  string post_id = 1;
+  string comment_id = 2;
+}
+
+message DeleteCommentResponse {}
+
+message LikePostRequest {
+  string post_id = 1;
+}
+
+message LikePostResponse {}
+
+message UnlikePostRequest {
+  string post_id = 1;
+}
+
+message UnlikePostResponse {}
+
+message DeleteUserProfileRequest {}
+
+message DeleteUserProfileResponse {}
+
+message GetCurrentUserProfileRequest {}
+
+message GetCurrentUserProfileResponse {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  string first_name = 4;
+  string last_name = 5;
+  string profile_photo_url = 6; // URL to profile photo
+  google.protobuf.Timestamp created_at = 7;
+}
+
+message UpdateUserProfileRequest {
+  string email = 1;
+  string first_name = 2;
+  string last_name = 3;
+  string profile_photo_url = 4; // URL to profile photo
+  string username = 5;
+}
+
+message UpdateUserProfileResponse {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  string first_name = 4;
+  string last_name = 5;
+  string profile_photo_url = 6; // URL to profile photo
+  google.protobuf.Timestamp created_at = 7;
+}
+
+message CreateUserProfileRequest {
+  string email = 1;
+  string first_name = 2;
+  string last_name = 3;
+  string profile_photo_url = 4; // URL to profile photo
+  string username = 5;
+}
+
+message CreateUserProfileResponse {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  string first_name = 4;
+  string last_name = 5;
+  string profile_photo_url = 6; // URL to profile photo
+  google.protobuf.Timestamp created_at = 7;
+}
+
+message GetUserByIdRequest {
+  string user_id = 1;
+}
+
+message GetUserByIdResponse {
+  UserPublicInfo user = 1;
+}
+
+message FollowUserRequest {
+  string user_id = 1;
+}
+
+message FollowUserResponse {}
+
+message UnfollowUserRequest {
+  string user_id = 1;
+}
+
+message UnfollowUserResponse {}

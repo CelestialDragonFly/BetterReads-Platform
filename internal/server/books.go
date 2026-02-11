@@ -5,104 +5,64 @@ import (
 	"errors"
 
 	betterreads "github.com/celestialdragonfly/betterreads/generated"
-	"github.com/celestialdragonfly/betterreads/internal/log"
 	"github.com/celestialdragonfly/betterreads/internal/openlibrary"
-	"github.com/google/uuid"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // (GET /api/v1/books).
-func (s *Server) SearchBooks(ctx context.Context, request betterreads.SearchBooksRequestObject) (betterreads.SearchBooksResponseObject, error) {
-	if err := verifyGetAPIV1BooksRequest(request); err != nil {
-		//nolint:nilerr // errors are reserved for internal errors
-		return betterreads.SearchBooks400JSONResponse{
-			Code: "BAD_REQUEST",
-			Details: &map[string]any{
-				"error":        err.Error(),
-				"reference_id": uuid.New(),
-			},
-			Message: "search books - invalid request",
-		}, nil
+// SearchBooks implements betterreads.BetterReadsServiceServer
+func (s *Server) SearchBooks(ctx context.Context, request *betterreads.SearchBooksRequest) (*betterreads.SearchBooksResponse, error) {
+	if err := verifySearchBooksRequest(request); err != nil {
+		return nil, err
 	}
 
 	searchResult, err := s.OpenLibrary.SearchBooks(
 		ctx,
-		getStringFromPointer(request.Params.Query),
-		request.Params.Title,
-		request.Params.Author,
-		request.Params.Subject,
+		request.Query,
+		&request.Title,
+		&request.Author,
+		&request.Subject,
 	)
 	if err != nil {
-		var resp betterreads.SearchBooksResponseObject
 		switch {
 		case errors.Is(err, openlibrary.ErrBadRequest):
-			resp = betterreads.SearchBooks400JSONResponse{
-				Code: "BAD_REQUEST",
-				Details: &map[string]any{
-					"error":        err.Error(),
-					"reference_id": uuid.New(),
-				},
-				Message: "search books - bad request",
-			}
+			return nil, status.Error(codes.InvalidArgument, err.Error())
 		case errors.Is(err, openlibrary.ErrNotFound):
-			resp = betterreads.SearchBooks400JSONResponse{ // todo add 404 back
-				Code: "NOT_FOUND",
-				Details: &map[string]any{
-					"error":        err.Error(),
-					"reference_id": uuid.New(),
-				},
-				Message: "search books - not found",
-			}
+			return nil, status.Error(codes.NotFound, err.Error())
 		case errors.Is(err, openlibrary.ErrInternalServer):
-			resp = betterreads.SearchBooks500JSONResponse{
-				Code: "INTERNAL_SERVER_ERROR",
-				Details: &map[string]any{
-					"error":        err.Error(),
-					"reference_id": uuid.New(),
-				},
-				Message: "search books - internal server error",
-			}
+			return nil, status.Error(codes.Internal, err.Error())
 		default:
-			log.Warn("unhandled error", map[string]error{"error": err})
-			resp = betterreads.SearchBooks500JSONResponse{
-				Code: "UNKNOWN",
-				Details: &map[string]any{
-					"error":        err.Error(),
-					"reference_id": uuid.New(),
-				},
-				Message: "search books - unknown",
-			}
+			return nil, status.Error(codes.Internal, err.Error())
 		}
-		return resp, nil
 	}
 
-	books := make([]betterreads.Book, 0)
+	books := make([]*betterreads.Book, 0)
 	for _, book := range searchResult.Books {
-		books = append(books, betterreads.Book{
+		books = append(books, &betterreads.Book{
 			Id:            book.CoverEditionKey,
 			Title:         book.Title,
 			AuthorName:    book.AuthorName,
 			AuthorId:      book.AuthorKey,
 			BookImage:     book.CoverImage,
-			PublishedYear: book.PublishYear,
+			PublishedYear: int32(book.PublishYear),
 			Isbn:          book.ISBN,
-			RatingCount:   book.RatingCount,
-			RatingAverage: book.RatingAverage,
-			Source:        betterreads.BookSourceOpenLibrary, // todo add mapper
+			RatingCount:   int32(book.RatingCount),
+			RatingAverage: float32(book.RatingAverage),
+			Source:        betterreads.BookSource_BOOK_SOURCE_OPEN_LIBRARY,
 		})
 	}
-	return betterreads.SearchBooks200JSONResponse{
-		Body: betterreads.GetBooksResponse{
-			Books: books,
-		},
+	return &betterreads.SearchBooksResponse{
+		Books: books,
 	}, nil
 }
 
-func verifyGetAPIV1BooksRequest(request betterreads.SearchBooksRequestObject) error {
-	if (request.Params.Query == nil || getStringFromPointer(request.Params.Query) == "") &&
-		request.Params.Title == nil &&
-		request.Params.Author == nil &&
-		request.Params.Subject == nil {
-		return errors.New("must pass one search parameter")
+func verifySearchBooksRequest(request *betterreads.SearchBooksRequest) error {
+	if request.Query == "" &&
+		request.Title == "" &&
+		request.Author == "" &&
+		request.Subject == "" {
+		return status.Error(codes.InvalidArgument, "must pass one search parameter")
 	}
 	return nil
 }

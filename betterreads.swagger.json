@@ -1,0 +1,1390 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "BetterReads API",
+    "description": "BetterReads API",
+    "version": "1.0.0"
+  },
+  "tags": [
+    {
+      "name": "BetterReadsService"
+    }
+  ],
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v1/books": {
+      "get": {
+        "summary": "Search for books",
+        "operationId": "BetterReadsService_SearchBooks",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsSearchBooksResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "title",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "author",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "subject",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "BetterReadsService"
+        ]
+      }
+    },
+    "/api/v1/feed": {
+      "get": {
+        "summary": "Get personalized feed",
+        "operationId": "BetterReadsService_GetPersonalizedFeed",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsGetPersonalizedFeedResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "since",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          }
+        ],
+        "tags": [
+          "BetterReadsService"
+        ]
+      }
+    },
+    "/api/v1/feed/{userId}": {
+      "get": {
+        "summary": "Get user's public posts",
+        "operationId": "BetterReadsService_GetUserFeed",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsGetUserFeedResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "BetterReadsService"
+        ]
+      }
+    },
+    "/api/v1/library": {
+      "delete": {
+        "summary": "Remove book from library",
+        "operationId": "BetterReadsService_RemoveLibraryBook",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsRemoveLibraryBookResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "bookId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "BetterReadsService"
+        ]
+      },
+      "put": {
+        "summary": "Add or update book in library",
+        "operationId": "BetterReadsService_UpdateLibraryBook",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsUpdateLibraryBookResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/betterreadsUpdateLibraryBookRequest"
+            }
+          }
+        ],
+        "tags": [
+          "BetterReadsService"
+        ]
+      }
+    },
+    "/api/v1/library/{userId}": {
+      "get": {
+        "summary": "Get user's library",
+        "operationId": "BetterReadsService_GetUserLibrary",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsGetUserLibraryResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "LIBRARY_FILTER_UNSPECIFIED",
+              "LIBRARY_FILTER_ALL",
+              "LIBRARY_FILTER_WANT_TO_READ",
+              "LIBRARY_FILTER_CURRENTLY_READING",
+              "LIBRARY_FILTER_READ"
+            ],
+            "default": "LIBRARY_FILTER_UNSPECIFIED"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "LIBRARY_SORT_UNSPECIFIED",
+              "LIBRARY_SORT_TITLE_ASC",
+              "LIBRARY_SORT_TITLE_DESC",
+              "LIBRARY_SORT_AUTHOR_ASC",
+              "LIBRARY_SORT_AUTHOR_DESC",
+              "LIBRARY_SORT_DATE_ADDED_ASC",
+              "LIBRARY_SORT_DATE_ADDED_DESC"
+            ],
+            "default": "LIBRARY_SORT_UNSPECIFIED"
+          }
+        ],
+        "tags": [
+          "BetterReadsService"
+        ]
+      }
+    },
+    "/api/v1/posts": {
+      "post": {
+        "summary": "Create a new post",
+        "operationId": "BetterReadsService_CreatePost",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsCreatePostResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/betterreadsCreatePostRequest"
+            }
+          }
+        ],
+        "tags": [
+          "BetterReadsService"
+        ]
+      }
+    },
+    "/api/v1/posts/{postId}": {
+      "delete": {
+        "summary": "Delete a post",
+        "operationId": "BetterReadsService_DeletePost",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsDeletePostResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "BetterReadsService"
+        ]
+      },
+      "put": {
+        "summary": "Update a post",
+        "operationId": "BetterReadsService_UpdatePost",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsUpdatePostResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "postId",
+            "description": "Path param",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BetterReadsServiceUpdatePostBody"
+            }
+          }
+        ],
+        "tags": [
+          "BetterReadsService"
+        ]
+      }
+    },
+    "/api/v1/posts/{postId}/comments": {
+      "get": {
+        "summary": "Retrieve comments for a post",
+        "operationId": "BetterReadsService_GetCommentsForPost",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsGetCommentsForPostResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "BetterReadsService"
+        ]
+      },
+      "post": {
+        "summary": "Add a comment to a post",
+        "operationId": "BetterReadsService_AddComment",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsAddCommentResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BetterReadsServiceAddCommentBody"
+            }
+          }
+        ],
+        "tags": [
+          "BetterReadsService"
+        ]
+      }
+    },
+    "/api/v1/posts/{postId}/comments/{commentId}": {
+      "delete": {
+        "summary": "Delete a specific comment from a post",
+        "operationId": "BetterReadsService_DeleteComment",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsDeleteCommentResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "BetterReadsService"
+        ]
+      }
+    },
+    "/api/v1/posts/{postId}/like": {
+      "post": {
+        "summary": "Like a post",
+        "operationId": "BetterReadsService_LikePost",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsLikePostResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "BetterReadsService"
+        ]
+      }
+    },
+    "/api/v1/posts/{postId}/unlike": {
+      "delete": {
+        "summary": "Unlike a post",
+        "operationId": "BetterReadsService_UnlikePost",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsUnlikePostResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "BetterReadsService"
+        ]
+      }
+    },
+    "/api/v1/profile": {
+      "get": {
+        "summary": "Get current user profile",
+        "operationId": "BetterReadsService_GetCurrentUserProfile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsGetCurrentUserProfileResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "BetterReadsService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete user profile",
+        "operationId": "BetterReadsService_DeleteUserProfile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsDeleteUserProfileResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "BetterReadsService"
+        ]
+      },
+      "post": {
+        "summary": "Create user profile",
+        "operationId": "BetterReadsService_CreateUserProfile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsCreateUserProfileResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/betterreadsCreateUserProfileRequest"
+            }
+          }
+        ],
+        "tags": [
+          "BetterReadsService"
+        ]
+      },
+      "patch": {
+        "summary": "Update user profile",
+        "operationId": "BetterReadsService_UpdateUserProfile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsUpdateUserProfileResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/betterreadsUpdateUserProfileRequest"
+            }
+          }
+        ],
+        "tags": [
+          "BetterReadsService"
+        ]
+      }
+    },
+    "/api/v1/users/{userId}": {
+      "get": {
+        "summary": "Get user information",
+        "operationId": "BetterReadsService_GetUserById",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsGetUserByIdResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "BetterReadsService"
+        ]
+      }
+    },
+    "/api/v1/users/{userId}/follow": {
+      "post": {
+        "summary": "Follow a user",
+        "operationId": "BetterReadsService_FollowUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsFollowUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "BetterReadsService"
+        ]
+      }
+    },
+    "/api/v1/users/{userId}/unfollow": {
+      "delete": {
+        "summary": "Unfollow a user",
+        "operationId": "BetterReadsService_UnfollowUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsUnfollowUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "BetterReadsService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "BetterReadsServiceAddCommentBody": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string"
+        }
+      }
+    },
+    "BetterReadsServiceUpdatePostBody": {
+      "type": "object",
+      "properties": {
+        "book": {
+          "$ref": "#/definitions/betterreadsBookDetails"
+        },
+        "description": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        }
+      }
+    },
+    "betterreadsAddCommentResponse": {
+      "type": "object",
+      "properties": {
+        "comment": {
+          "$ref": "#/definitions/betterreadsComment"
+        }
+      }
+    },
+    "betterreadsBook": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "authorId": {
+          "type": "string"
+        },
+        "authorName": {
+          "type": "string"
+        },
+        "bookImage": {
+          "type": "string"
+        },
+        "isbn": {
+          "type": "string"
+        },
+        "publishedYear": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "ratingAverage": {
+          "type": "number",
+          "format": "float"
+        },
+        "ratingCount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "source": {
+          "$ref": "#/definitions/betterreadsBookSource"
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "betterreadsBookDetails": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "imageUrl": {
+          "type": "string"
+        },
+        "rating": {
+          "$ref": "#/definitions/betterreadsBookRating"
+        }
+      },
+      "title": "Unified book details for posts - includes user's rating and review info"
+    },
+    "betterreadsBookRating": {
+      "type": "string",
+      "enum": [
+        "BOOK_RATING_UNSPECIFIED",
+        "BOOK_RATING_ONE_STAR",
+        "BOOK_RATING_TWO_STAR",
+        "BOOK_RATING_THREE_STAR",
+        "BOOK_RATING_FOUR_STAR",
+        "BOOK_RATING_FIVE_STAR"
+      ],
+      "default": "BOOK_RATING_UNSPECIFIED"
+    },
+    "betterreadsBookShelf": {
+      "type": "string",
+      "enum": [
+        "BOOK_SHELF_UNSPECIFIED",
+        "BOOK_SHELF_WANT_TO_READ",
+        "BOOK_SHELF_CURRENTLY_READING",
+        "BOOK_SHELF_READ"
+      ],
+      "default": "BOOK_SHELF_UNSPECIFIED"
+    },
+    "betterreadsBookSource": {
+      "type": "string",
+      "enum": [
+        "BOOK_SOURCE_UNSPECIFIED",
+        "BOOK_SOURCE_GOOGLE_BOOKS",
+        "BOOK_SOURCE_OPEN_LIBRARY",
+        "BOOK_SOURCE_MANUAL"
+      ],
+      "default": "BOOK_SOURCE_UNSPECIFIED"
+    },
+    "betterreadsComment": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "content": {
+          "type": "string"
+        },
+        "postId": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "betterreadsCreatePostRequest": {
+      "type": "object",
+      "properties": {
+        "book": {
+          "$ref": "#/definitions/betterreadsBookDetails"
+        },
+        "description": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        }
+      }
+    },
+    "betterreadsCreatePostResponse": {
+      "type": "object",
+      "properties": {
+        "post": {
+          "$ref": "#/definitions/betterreadsPost"
+        }
+      }
+    },
+    "betterreadsCreateUserProfileRequest": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "profilePhotoUrl": {
+          "type": "string",
+          "title": "URL to profile photo"
+        },
+        "username": {
+          "type": "string"
+        }
+      }
+    },
+    "betterreadsCreateUserProfileResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "profilePhotoUrl": {
+          "type": "string",
+          "title": "URL to profile photo"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "betterreadsDeleteCommentResponse": {
+      "type": "object"
+    },
+    "betterreadsDeletePostResponse": {
+      "type": "object"
+    },
+    "betterreadsDeleteUserProfileResponse": {
+      "type": "object"
+    },
+    "betterreadsFollowUserResponse": {
+      "type": "object"
+    },
+    "betterreadsGetCommentsForPostResponse": {
+      "type": "object",
+      "properties": {
+        "comments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/betterreadsComment"
+          }
+        },
+        "pagination": {
+          "$ref": "#/definitions/betterreadsPaginationMetadata"
+        }
+      }
+    },
+    "betterreadsGetCurrentUserProfileResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "profilePhotoUrl": {
+          "type": "string",
+          "title": "URL to profile photo"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "betterreadsGetPersonalizedFeedResponse": {
+      "type": "object",
+      "properties": {
+        "posts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/betterreadsPost"
+          }
+        },
+        "pagination": {
+          "$ref": "#/definitions/betterreadsPaginationMetadata"
+        }
+      }
+    },
+    "betterreadsGetUserByIdResponse": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "$ref": "#/definitions/betterreadsUserPublicInfo"
+        }
+      }
+    },
+    "betterreadsGetUserFeedResponse": {
+      "type": "object",
+      "properties": {
+        "posts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/betterreadsPost"
+          }
+        },
+        "pagination": {
+          "$ref": "#/definitions/betterreadsPaginationMetadata"
+        }
+      }
+    },
+    "betterreadsGetUserLibraryResponse": {
+      "type": "object",
+      "properties": {
+        "library": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/betterreadsLibraryBook"
+          }
+        },
+        "pagination": {
+          "$ref": "#/definitions/betterreadsPaginationMetadata"
+        }
+      }
+    },
+    "betterreadsLibraryBook": {
+      "type": "object",
+      "properties": {
+        "authorName": {
+          "type": "string"
+        },
+        "bookId": {
+          "type": "string"
+        },
+        "bookImage": {
+          "type": "string"
+        },
+        "rating": {
+          "$ref": "#/definitions/betterreadsBookRating"
+        },
+        "shelf": {
+          "$ref": "#/definitions/betterreadsBookShelf"
+        },
+        "source": {
+          "$ref": "#/definitions/betterreadsBookSource"
+        },
+        "title": {
+          "type": "string"
+        },
+        "addedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "betterreadsLibraryFilter": {
+      "type": "string",
+      "enum": [
+        "LIBRARY_FILTER_UNSPECIFIED",
+        "LIBRARY_FILTER_ALL",
+        "LIBRARY_FILTER_WANT_TO_READ",
+        "LIBRARY_FILTER_CURRENTLY_READING",
+        "LIBRARY_FILTER_READ"
+      ],
+      "default": "LIBRARY_FILTER_UNSPECIFIED"
+    },
+    "betterreadsLibrarySort": {
+      "type": "string",
+      "enum": [
+        "LIBRARY_SORT_UNSPECIFIED",
+        "LIBRARY_SORT_TITLE_ASC",
+        "LIBRARY_SORT_TITLE_DESC",
+        "LIBRARY_SORT_AUTHOR_ASC",
+        "LIBRARY_SORT_AUTHOR_DESC",
+        "LIBRARY_SORT_DATE_ADDED_ASC",
+        "LIBRARY_SORT_DATE_ADDED_DESC"
+      ],
+      "default": "LIBRARY_SORT_UNSPECIFIED"
+    },
+    "betterreadsLikePostResponse": {
+      "type": "object"
+    },
+    "betterreadsPaginationMetadata": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "betterreadsPost": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "book": {
+          "$ref": "#/definitions/betterreadsBookDetails"
+        },
+        "likeCount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "commentCount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "betterreadsRemoveLibraryBookResponse": {
+      "type": "object"
+    },
+    "betterreadsSearchBooksResponse": {
+      "type": "object",
+      "properties": {
+        "books": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/betterreadsBook"
+          }
+        },
+        "pagination": {
+          "$ref": "#/definitions/betterreadsPaginationMetadata"
+        }
+      }
+    },
+    "betterreadsUnfollowUserResponse": {
+      "type": "object"
+    },
+    "betterreadsUnlikePostResponse": {
+      "type": "object"
+    },
+    "betterreadsUpdateLibraryBookRequest": {
+      "type": "object",
+      "properties": {
+        "authorName": {
+          "type": "string"
+        },
+        "bookId": {
+          "type": "string"
+        },
+        "bookImage": {
+          "type": "string"
+        },
+        "shelf": {
+          "$ref": "#/definitions/betterreadsBookShelf"
+        },
+        "source": {
+          "$ref": "#/definitions/betterreadsBookSource"
+        },
+        "title": {
+          "type": "string"
+        },
+        "rating": {
+          "$ref": "#/definitions/betterreadsBookRating"
+        }
+      }
+    },
+    "betterreadsUpdateLibraryBookResponse": {
+      "type": "object"
+    },
+    "betterreadsUpdatePostResponse": {
+      "type": "object",
+      "properties": {
+        "post": {
+          "$ref": "#/definitions/betterreadsPost"
+        }
+      }
+    },
+    "betterreadsUpdateUserProfileRequest": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "profilePhotoUrl": {
+          "type": "string",
+          "title": "URL to profile photo"
+        },
+        "username": {
+          "type": "string"
+        }
+      }
+    },
+    "betterreadsUpdateUserProfileResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "profilePhotoUrl": {
+          "type": "string",
+          "title": "URL to profile photo"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "betterreadsUserPublicInfo": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "profilePhotoUrl": {
+          "type": "string",
+          "title": "URL to profile photo"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}
