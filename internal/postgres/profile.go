@@ -43,9 +43,9 @@ func (db *Client) ProfileCreate(ctx context.Context, profile *data.User) (*data.
 		profile.Email,
 		profile.ProfilePhotoURL,
 	).Scan(&createdAt)
-
 	if err != nil {
-		if pgErr, ok := err.(*pgconn.PgError); ok {
+		pgErr := &pgconn.PgError{}
+		if errors.As(err, &pgErr) {
 			if pgErr.Code == UniqueViolation {
 				switch pgErr.ConstraintName {
 				case "users_username_key":
@@ -84,7 +84,6 @@ func (db *Client) ProfileGet(ctx context.Context, id string) (*data.User, error)
 		&user.ProfilePhotoURL,
 		&user.CreatedAt,
 	)
-
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrUserNotFound
@@ -155,12 +154,12 @@ func (db *Client) ProfileUpdate(ctx context.Context, id string, updates *data.Us
 		&updated.ProfilePhotoURL,
 		&updated.CreatedAt,
 	)
-
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrUserNotFound
 		}
-		if pgErr, ok := err.(*pgconn.PgError); ok {
+		pgErr := &pgconn.PgError{}
+		if errors.As(err, &pgErr) {
 			if pgErr.Code == UniqueViolation {
 				switch pgErr.ConstraintName {
 				case "users_username_key":
@@ -197,9 +196,7 @@ func (db *Client) ProfileDelete(ctx context.Context, id string) error {
 	return nil
 }
 
-var (
-	ErrUnableToCreateUserTable = fmt.Errorf("failed to register user table")
-)
+var ErrUnableToCreateUserTable = fmt.Errorf("failed to register user table")
 
 func registerUser(ctx context.Context, db *pgx.Conn) error {
 	createUsersTable := `

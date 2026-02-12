@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/celestialdragonfly/betterreads/internal/log"
+	"github.com/celestialdragonfly/betterreads/internal/logger"
 	library "github.com/celestialdragonfly/betterreads/internal/openlibrary/contracts"
 )
 
@@ -67,7 +67,7 @@ func (c *Client) SearchBooks(ctx context.Context, query string, title, author, s
 	}
 	defer func() {
 		if closeErr := resp.Body.Close(); closeErr != nil {
-			log.Warn("unable to close response body", map[string]interface{}{"error": closeErr})
+			logger.Warn("unable to close response body", map[string]interface{}{"error": closeErr})
 		}
 	}()
 

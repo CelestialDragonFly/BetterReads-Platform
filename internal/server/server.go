@@ -26,10 +26,3 @@ func NewServer(cfg *Config) *Server {
 		OpenLibrary: cfg.OpenLibrary,
 	}
 }
-
-func getStringFromPointer(s *string) string {
-	if s == nil {
-		return ""
-	}
-	return *s
-}

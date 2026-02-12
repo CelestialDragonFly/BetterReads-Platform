@@ -1,11 +1,12 @@
 #!/bin/bash
 export DOCKER_HOST=unix:///var/run/docker.sock
-export DOCKER_CONFIG=$(mktemp -d)
+DOCKER_CONFIG=$(mktemp -d)
+export DOCKER_CONFIG
 GOPATH=$(go env GOPATH)
 
 function generate_grpc() {
 	rm -rf ./generated/*
-	
+
 	# Build the builder image
 	docker build -t betterreads-protoc -f Dockerfile.protoc .
 

@@ -11,7 +11,7 @@ import (
 )
 
 // (GET /api/v1/books).
-// SearchBooks implements betterreads.BetterReadsServiceServer
+// SearchBooks implements betterreads.BetterReadsServiceServer.
 func (s *Server) SearchBooks(ctx context.Context, request *betterreads.SearchBooksRequest) (*betterreads.SearchBooksResponse, error) {
 	if err := verifySearchBooksRequest(request); err != nil {
 		return nil, err
@@ -45,9 +45,9 @@ func (s *Server) SearchBooks(ctx context.Context, request *betterreads.SearchBoo
 			AuthorName:    book.AuthorName,
 			AuthorId:      book.AuthorKey,
 			BookImage:     book.CoverImage,
-			PublishedYear: int32(book.PublishYear),
+			PublishedYear: int32(book.PublishYear), //nolint:gosec // integer overflow unlikely
 			Isbn:          book.ISBN,
-			RatingCount:   int32(book.RatingCount),
+			RatingCount:   int32(book.RatingCount), //nolint:gosec // integer overflow unlikely
 			RatingAverage: float32(book.RatingAverage),
 			Source:        betterreads.BookSource_BOOK_SOURCE_OPEN_LIBRARY,
 		})

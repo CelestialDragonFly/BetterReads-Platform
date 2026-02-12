@@ -29,16 +29,13 @@ func NewClient(ctx context.Context, dsn string) (*Client, error) {
 
 	if err := migrate(ctx, db); err != nil {
 		return nil, fmt.Errorf("NewClient postgress: %w", err)
-
 	}
 	return &Client{DB: db}, nil
 }
 
-var (
-	registers = []func(context.Context, *pgx.Conn) error{
-		registerUser,
-	}
-)
+var registers = []func(context.Context, *pgx.Conn) error{
+	registerUser,
+}
 
 func migrate(ctx context.Context, db *pgx.Conn) error {
 	for _, f := range registers {

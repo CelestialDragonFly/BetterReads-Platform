@@ -8,12 +8,12 @@ import (
 	betterreads "github.com/celestialdragonfly/betterreads/generated"
 	"github.com/celestialdragonfly/betterreads/internal/data"
 	"github.com/celestialdragonfly/betterreads/internal/headers"
-	"github.com/celestialdragonfly/betterreads/internal/log"
+	"github.com/celestialdragonfly/betterreads/internal/logger"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-// DeleteUserProfile implements betterreads.BetterReadsServiceServer
-func (s *Server) DeleteUserProfile(ctx context.Context, request *betterreads.DeleteUserProfileRequest) (*betterreads.DeleteUserProfileResponse, error) {
+// DeleteUserProfile implements betterreads.BetterReadsServiceServer.
+func (s *Server) DeleteUserProfile(ctx context.Context, _ *betterreads.DeleteUserProfileRequest) (*betterreads.DeleteUserProfileResponse, error) {
 	userID, ok := headers.GetUserID(ctx)
 	if !ok {
 		return nil, errors.New("unable to retrieve user_id from context")
@@ -26,8 +26,8 @@ func (s *Server) DeleteUserProfile(ctx context.Context, request *betterreads.Del
 	return &betterreads.DeleteUserProfileResponse{}, nil
 }
 
-// GetCurrentUserProfile implements betterreads.BetterReadsServiceServer
-func (s *Server) GetCurrentUserProfile(ctx context.Context, request *betterreads.GetCurrentUserProfileRequest) (*betterreads.GetCurrentUserProfileResponse, error) {
+// GetCurrentUserProfile implements betterreads.BetterReadsServiceServer.
+func (s *Server) GetCurrentUserProfile(ctx context.Context, _ *betterreads.GetCurrentUserProfileRequest) (*betterreads.GetCurrentUserProfileResponse, error) {
 	userID, ok := headers.GetUserID(ctx)
 	if !ok {
 		return nil, errors.New("unable to retrieve user_id from context")
@@ -49,7 +49,7 @@ func (s *Server) GetCurrentUserProfile(ctx context.Context, request *betterreads
 	}, nil
 }
 
-// UpdateUserProfile implements betterreads.BetterReadsServiceServer
+// UpdateUserProfile implements betterreads.BetterReadsServiceServer.
 func (s *Server) UpdateUserProfile(ctx context.Context, request *betterreads.UpdateUserProfileRequest) (*betterreads.UpdateUserProfileResponse, error) {
 	userID, ok := headers.GetUserID(ctx)
 	if !ok {
@@ -80,7 +80,7 @@ func (s *Server) UpdateUserProfile(ctx context.Context, request *betterreads.Upd
 	}, nil
 }
 
-// CreateUserProfile implements betterreads.BetterReadsServiceServer
+// CreateUserProfile implements betterreads.BetterReadsServiceServer.
 func (s *Server) CreateUserProfile(ctx context.Context, request *betterreads.CreateUserProfileRequest) (*betterreads.CreateUserProfileResponse, error) {
 	userID, ok := headers.GetUserID(ctx)
 	if !ok {
@@ -96,7 +96,7 @@ func (s *Server) CreateUserProfile(ctx context.Context, request *betterreads.Cre
 		ProfilePhotoURL: request.ProfilePhotoUrl,
 	}
 
-	if len(newProfile.GetUsername()) < 3 {
+	if len(newProfile.GetUsername()) < 3 { //nolint: mnd // minimum username length
 		return nil, errors.New("username must be at least 3 characters")
 	}
 
@@ -123,7 +123,7 @@ func (s *Server) CreateUserProfile(ctx context.Context, request *betterreads.Cre
 // isValidEmail checks whether the given string is a valid email address.
 func isValidEmail(email string) bool {
 	if _, err := mail.ParseAddress(email); err != nil {
-		log.Error("Invalid email address", "email", email, "error", err)
+		logger.Error("Invalid email address", "email", email, "error", err)
 		return false
 	}
 	return true
