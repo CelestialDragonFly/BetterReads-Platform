@@ -10,7 +10,7 @@ import (
 	betterreads "github.com/celestialdragonfly/betterreads/generated"
 	"github.com/celestialdragonfly/betterreads/internal/auth"
 	"github.com/celestialdragonfly/betterreads/internal/env"
-	"github.com/celestialdragonfly/betterreads/internal/log"
+	"github.com/celestialdragonfly/betterreads/internal/logger"
 	"github.com/celestialdragonfly/betterreads/internal/middleware"
 	"github.com/celestialdragonfly/betterreads/internal/openlibrary"
 	"github.com/celestialdragonfly/betterreads/internal/postgres"
@@ -22,8 +22,8 @@ import (
 
 var (
 	Host                   = env.GetDefault("BETTERREADS_HOST", "0.0.0.0")
-	Port                   = env.GetIntDefault("BETTERREADS_PORT", 8080) //nolint: mnd // ignore magic numbers
-	GRPCPort               = env.GetIntDefault("BETTERREADS_GRPC_PORT", 9090)
+	Port                   = env.GetIntDefault("BETTERREADS_PORT", 8080)      //nolint: mnd // ignore magic numbers
+	GRPCPort               = env.GetIntDefault("BETTERREADS_GRPC_PORT", 9090) //nolint: mnd // default grpc port
 	FirebaseServiceAccount = env.GetDefault("FIREBASE_SERVICE_ACCOUNT", "./secrets/firebase-serviceaccount.json")
 	SQLURL                 = env.GetDefault("SQL_URL", "postgresql://admin:sqltango@localhost:5432/betterreads")
 	OpenLibraryHost        = env.GetDefault("OPEN_LIBRARY_HOST", "https://openlibrary.org")
@@ -46,8 +46,8 @@ func main() {
 		panic(fmt.Errorf("unable to connect to postgres client %w", err))
 	}
 	defer func() {
-		if err := sqlClient.DB.Close(ctx); err != nil {
-			log.Error(fmt.Sprintf("Error disconnecting: %v", err))
+		if closeErr := sqlClient.DB.Close(ctx); closeErr != nil {
+			logger.Error(fmt.Sprintf("Error disconnecting: %v", closeErr))
 		}
 	}()
 
@@ -62,7 +62,8 @@ func main() {
 	})
 
 	// Start gRPC server
-	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", Host, GRPCPort))
+	lc := net.ListenConfig{}
+	lis, err := lc.Listen(ctx, "tcp", fmt.Sprintf("%s:%d", Host, GRPCPort))
 	if err != nil {
 		panic(fmt.Errorf("failed to listen: %w", err))
 	}
@@ -73,9 +74,9 @@ func main() {
 	betterreads.RegisterBetterReadsServiceServer(grpcServer, srv)
 
 	go func() {
-		log.Info(fmt.Sprintf("gRPC Server starting on port %d", GRPCPort))
-		if err := grpcServer.Serve(lis); err != nil {
-			panic(fmt.Errorf("failed to serve gRPC: %w", err))
+		logger.Info(fmt.Sprintf("gRPC Server starting on port %d", GRPCPort))
+		if serveErr := grpcServer.Serve(lis); serveErr != nil {
+			panic(fmt.Errorf("failed to serve gRPC: %w", serveErr))
 		}
 	}()
 
@@ -93,7 +94,7 @@ func main() {
 		ReadHeaderTimeout: ReaderTimeout,
 	}
 
-	log.Info(fmt.Sprintf("HTTP Gateway starting on port %d", Port))
+	logger.Info(fmt.Sprintf("HTTP Gateway starting on port %d", Port))
 	if err := httpSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		panic(fmt.Sprintf("HTTP Server failed to start: %v", err))
 	}

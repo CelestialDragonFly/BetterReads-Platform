@@ -44,6 +44,7 @@ func TestNewClient(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			client, err := NewClient(tt.host)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewClient() error = %v, wantErr %v", err, tt.wantErr)
@@ -273,8 +274,8 @@ func TestSearchBooks(t *testing.T) {
 // TestGetFirstValue tests the getFirstValue function.
 func TestGetFirstValue(t *testing.T) {
 	t.Parallel()
-	// Test with strings
 	t.Run("String slice with values", func(t *testing.T) {
+		t.Parallel()
 		slice := []string{"first", "second", "third"}
 		result := getFirstValue(slice)
 		expected := "first"
@@ -284,6 +285,7 @@ func TestGetFirstValue(t *testing.T) {
 	})
 
 	t.Run("Empty string slice", func(t *testing.T) {
+		t.Parallel()
 		slice := []string{}
 		result := getFirstValue(slice)
 		expected := ""
@@ -294,6 +296,7 @@ func TestGetFirstValue(t *testing.T) {
 
 	// Test with integers
 	t.Run("Integer slice with values", func(t *testing.T) {
+		t.Parallel()
 		slice := []int{1, 2, 3}
 		result := getFirstValue(slice)
 		expected := 1
@@ -303,6 +306,7 @@ func TestGetFirstValue(t *testing.T) {
 	})
 
 	t.Run("Empty integer slice", func(t *testing.T) {
+		t.Parallel()
 		slice := []int{}
 		result := getFirstValue(slice)
 		expected := 0
