@@ -279,14 +279,6 @@ message LibraryBook {
   google.protobuf.Timestamp updated_at = 9;
 }
 
-message UserPublicInfo {
-  string id = 1;
-  string username = 2;
-  string first_name = 3;
-  string last_name = 4;
-  string profile_photo_url = 5; // URL to profile photo
-}
-
 // RPC Request/Response pairs (in order of service definition)
 
 message SearchBooksRequest {
@@ -479,7 +471,11 @@ message GetUserByIdRequest {
 }
 
 message GetUserByIdResponse {
-  UserPublicInfo user = 1;
+  string id = 1;
+  string username = 2;
+  string first_name = 3;
+  string last_name = 4;
+  string profile_photo_url = 5; // URL to profile photo
 }
 
 message FollowUserRequest {

@@ -1082,8 +1082,21 @@
     "betterreadsGetUserByIdResponse": {
       "type": "object",
       "properties": {
-        "user": {
-          "$ref": "#/definitions/betterreadsUserPublicInfo"
+        "id": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "profilePhotoUrl": {
+          "type": "string",
+          "title": "URL to profile photo"
         }
       }
     },
@@ -1334,27 +1347,6 @@
         "createdAt": {
           "type": "string",
           "format": "date-time"
-        }
-      }
-    },
-    "betterreadsUserPublicInfo": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "username": {
-          "type": "string"
-        },
-        "firstName": {
-          "type": "string"
-        },
-        "lastName": {
-          "type": "string"
-        },
-        "profilePhotoUrl": {
-          "type": "string",
-          "title": "URL to profile photo"
         }
       }
     },
