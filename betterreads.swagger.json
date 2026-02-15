@@ -177,7 +177,7 @@
     },
     "/api/v1/library": {
       "delete": {
-        "summary": "Remove book from library",
+        "summary": "Remove book from library (removes from all shelves)",
         "operationId": "BetterReadsService_RemoveLibraryBook",
         "responses": {
           "200": {
@@ -237,9 +237,81 @@
         ]
       }
     },
+    "/api/v1/library/books/{bookId}/shelves/{shelfId}": {
+      "delete": {
+        "summary": "Remove book from specific shelves (book remains in library if on other shelves)",
+        "operationId": "BetterReadsService_RemoveBookFromShelf",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsRemoveBookFromShelfResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "bookId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "shelfId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "BetterReadsService"
+        ]
+      },
+      "post": {
+        "summary": "Add book to one or more shelves",
+        "operationId": "BetterReadsService_AddBookToShelf",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsAddBookToShelfResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "bookId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "shelfId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "BetterReadsService"
+        ]
+      }
+    },
     "/api/v1/library/{userId}": {
       "get": {
-        "summary": "Get user's library",
+        "summary": "Get user's library (all books grouped by shelf)",
         "operationId": "BetterReadsService_GetUserLibrary",
         "responses": {
           "200": {
@@ -263,20 +335,6 @@
             "type": "string"
           },
           {
-            "name": "filter",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "enum": [
-              "LIBRARY_FILTER_UNSPECIFIED",
-              "LIBRARY_FILTER_ALL",
-              "LIBRARY_FILTER_WANT_TO_READ",
-              "LIBRARY_FILTER_CURRENTLY_READING",
-              "LIBRARY_FILTER_READ"
-            ],
-            "default": "LIBRARY_FILTER_UNSPECIFIED"
-          },
-          {
             "name": "page",
             "in": "query",
             "required": false,
@@ -289,22 +347,6 @@
             "required": false,
             "type": "integer",
             "format": "int32"
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "enum": [
-              "LIBRARY_SORT_UNSPECIFIED",
-              "LIBRARY_SORT_TITLE_ASC",
-              "LIBRARY_SORT_TITLE_DESC",
-              "LIBRARY_SORT_AUTHOR_ASC",
-              "LIBRARY_SORT_AUTHOR_DESC",
-              "LIBRARY_SORT_DATE_ADDED_ASC",
-              "LIBRARY_SORT_DATE_ADDED_DESC"
-            ],
-            "default": "LIBRARY_SORT_UNSPECIFIED"
           }
         ],
         "tags": [
@@ -701,6 +743,199 @@
         ]
       }
     },
+    "/api/v1/shelves": {
+      "post": {
+        "summary": "Create a new shelf",
+        "operationId": "BetterReadsService_CreateShelf",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsCreateShelfResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/betterreadsCreateShelfRequest"
+            }
+          }
+        ],
+        "tags": [
+          "BetterReadsService"
+        ]
+      }
+    },
+    "/api/v1/shelves/{shelfId}": {
+      "delete": {
+        "summary": "Delete shelf and remove all books from library that are only on this shelf",
+        "operationId": "BetterReadsService_DeleteShelf",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsDeleteShelfResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "shelfId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "BetterReadsService"
+        ]
+      },
+      "patch": {
+        "summary": "Update shelf (rename or reorder)",
+        "operationId": "BetterReadsService_UpdateShelf",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsUpdateShelfResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "shelfId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BetterReadsServiceUpdateShelfBody"
+            }
+          }
+        ],
+        "tags": [
+          "BetterReadsService"
+        ]
+      }
+    },
+    "/api/v1/shelves/{shelfId}/books": {
+      "get": {
+        "summary": "Get books for a specific shelf",
+        "operationId": "BetterReadsService_GetShelfBooks",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsGetShelfBooksResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "shelfId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SHELF_SORT_ORDER_UNSPECIFIED",
+              "SHELF_SORT_ORDER_TITLE_ASC",
+              "SHELF_SORT_ORDER_TITLE_DESC",
+              "SHELF_SORT_ORDER_AUTHOR_ASC",
+              "SHELF_SORT_ORDER_AUTHOR_DESC",
+              "SHELF_SORT_ORDER_DATE_ADDED_ASC",
+              "SHELF_SORT_ORDER_DATE_ADDED_DESC"
+            ],
+            "default": "SHELF_SORT_ORDER_UNSPECIFIED"
+          }
+        ],
+        "tags": [
+          "BetterReadsService"
+        ]
+      }
+    },
+    "/api/v1/shelves/{userId}": {
+      "get": {
+        "summary": "Get all shelves for a user",
+        "operationId": "BetterReadsService_GetUserShelves",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/betterreadsGetUserShelvesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "BetterReadsService"
+        ]
+      }
+    },
     "/api/v1/users/{userId}": {
       "get": {
         "summary": "Get user information",
@@ -818,6 +1053,18 @@
         }
       }
     },
+    "BetterReadsServiceUpdateShelfBody": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Optional: if provided, renames the shelf"
+        }
+      }
+    },
+    "betterreadsAddBookToShelfResponse": {
+      "type": "object"
+    },
     "betterreadsAddCommentResponse": {
       "type": "object",
       "properties": {
@@ -897,16 +1144,6 @@
       ],
       "default": "BOOK_RATING_UNSPECIFIED"
     },
-    "betterreadsBookShelf": {
-      "type": "string",
-      "enum": [
-        "BOOK_SHELF_UNSPECIFIED",
-        "BOOK_SHELF_WANT_TO_READ",
-        "BOOK_SHELF_CURRENTLY_READING",
-        "BOOK_SHELF_READ"
-      ],
-      "default": "BOOK_SHELF_UNSPECIFIED"
-    },
     "betterreadsBookSource": {
       "type": "string",
       "enum": [
@@ -957,6 +1194,22 @@
       "properties": {
         "post": {
           "$ref": "#/definitions/betterreadsPost"
+        }
+      }
+    },
+    "betterreadsCreateShelfRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "betterreadsCreateShelfResponse": {
+      "type": "object",
+      "properties": {
+        "shelf": {
+          "$ref": "#/definitions/betterreadsShelf"
         }
       }
     },
@@ -1013,6 +1266,9 @@
       "type": "object"
     },
     "betterreadsDeletePostResponse": {
+      "type": "object"
+    },
+    "betterreadsDeleteShelfResponse": {
       "type": "object"
     },
     "betterreadsDeleteUserProfileResponse": {
@@ -1079,6 +1335,21 @@
         }
       }
     },
+    "betterreadsGetShelfBooksResponse": {
+      "type": "object",
+      "properties": {
+        "books": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/betterreadsLibraryBook"
+          }
+        },
+        "pagination": {
+          "$ref": "#/definitions/betterreadsPaginationMetadata"
+        }
+      }
+    },
     "betterreadsGetUserByIdResponse": {
       "type": "object",
       "properties": {
@@ -1118,15 +1389,35 @@
     "betterreadsGetUserLibraryResponse": {
       "type": "object",
       "properties": {
-        "library": {
+        "shelves": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/betterreadsShelfWithBooks"
+          }
+        },
+        "unshelvedBooks": {
           "type": "array",
           "items": {
             "type": "object",
             "$ref": "#/definitions/betterreadsLibraryBook"
-          }
+          },
+          "title": "Books not on any shelf"
         },
         "pagination": {
           "$ref": "#/definitions/betterreadsPaginationMetadata"
+        }
+      }
+    },
+    "betterreadsGetUserShelvesResponse": {
+      "type": "object",
+      "properties": {
+        "shelves": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/betterreadsShelf"
+          }
         }
       }
     },
@@ -1145,8 +1436,12 @@
         "rating": {
           "$ref": "#/definitions/betterreadsBookRating"
         },
-        "shelf": {
-          "$ref": "#/definitions/betterreadsBookShelf"
+        "shelfIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Books can be on multiple shelves"
         },
         "source": {
           "$ref": "#/definitions/betterreadsBookSource"
@@ -1163,30 +1458,6 @@
           "format": "date-time"
         }
       }
-    },
-    "betterreadsLibraryFilter": {
-      "type": "string",
-      "enum": [
-        "LIBRARY_FILTER_UNSPECIFIED",
-        "LIBRARY_FILTER_ALL",
-        "LIBRARY_FILTER_WANT_TO_READ",
-        "LIBRARY_FILTER_CURRENTLY_READING",
-        "LIBRARY_FILTER_READ"
-      ],
-      "default": "LIBRARY_FILTER_UNSPECIFIED"
-    },
-    "betterreadsLibrarySort": {
-      "type": "string",
-      "enum": [
-        "LIBRARY_SORT_UNSPECIFIED",
-        "LIBRARY_SORT_TITLE_ASC",
-        "LIBRARY_SORT_TITLE_DESC",
-        "LIBRARY_SORT_AUTHOR_ASC",
-        "LIBRARY_SORT_AUTHOR_DESC",
-        "LIBRARY_SORT_DATE_ADDED_ASC",
-        "LIBRARY_SORT_DATE_ADDED_DESC"
-      ],
-      "default": "LIBRARY_SORT_UNSPECIFIED"
     },
     "betterreadsLikePostResponse": {
       "type": "object"
@@ -1240,6 +1511,9 @@
         }
       }
     },
+    "betterreadsRemoveBookFromShelfResponse": {
+      "type": "object"
+    },
     "betterreadsRemoveLibraryBookResponse": {
       "type": "object"
     },
@@ -1255,6 +1529,56 @@
         },
         "pagination": {
           "$ref": "#/definitions/betterreadsPaginationMetadata"
+        }
+      }
+    },
+    "betterreadsShelf": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "betterreadsShelfSortOrder": {
+      "type": "string",
+      "enum": [
+        "SHELF_SORT_ORDER_UNSPECIFIED",
+        "SHELF_SORT_ORDER_TITLE_ASC",
+        "SHELF_SORT_ORDER_TITLE_DESC",
+        "SHELF_SORT_ORDER_AUTHOR_ASC",
+        "SHELF_SORT_ORDER_AUTHOR_DESC",
+        "SHELF_SORT_ORDER_DATE_ADDED_ASC",
+        "SHELF_SORT_ORDER_DATE_ADDED_DESC"
+      ],
+      "default": "SHELF_SORT_ORDER_UNSPECIFIED"
+    },
+    "betterreadsShelfWithBooks": {
+      "type": "object",
+      "properties": {
+        "shelf": {
+          "$ref": "#/definitions/betterreadsShelf"
+        },
+        "books": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/betterreadsLibraryBook"
+          }
         }
       }
     },
@@ -1276,8 +1600,12 @@
         "bookImage": {
           "type": "string"
         },
-        "shelf": {
-          "$ref": "#/definitions/betterreadsBookShelf"
+        "shelfIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Optional: Books can exist without shelves"
         },
         "source": {
           "$ref": "#/definitions/betterreadsBookSource"
@@ -1298,6 +1626,14 @@
       "properties": {
         "post": {
           "$ref": "#/definitions/betterreadsPost"
+        }
+      }
+    },
+    "betterreadsUpdateShelfResponse": {
+      "type": "object",
+      "properties": {
+        "shelf": {
+          "$ref": "#/definitions/betterreadsShelf"
         }
       }
     },
