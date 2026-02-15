@@ -5,15 +5,14 @@ import (
 	"errors"
 	"net/mail"
 
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/timestamppb"
-
 	betterreads "github.com/celestialdragonfly/betterreads/generated"
 	"github.com/celestialdragonfly/betterreads/internal/data"
 	"github.com/celestialdragonfly/betterreads/internal/headers"
 	"github.com/celestialdragonfly/betterreads/internal/logger"
 	"github.com/celestialdragonfly/betterreads/internal/postgres"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // DeleteUserProfile implements betterreads.BetterReadsServiceServer.
