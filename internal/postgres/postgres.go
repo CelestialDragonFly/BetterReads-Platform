@@ -5,8 +5,19 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/celestialdragonfly/betterreads/internal/data"
 	"github.com/jackc/pgx/v5"
 )
+
+type API interface {
+	ProfileCreate(ctx context.Context, profile *data.User) (*data.User, error)
+	ProfileGet(ctx context.Context, id string) (*data.User, error)
+	ProfileUpdate(ctx context.Context, id string, updates *data.User) (*data.User, error)
+	ProfileDelete(ctx context.Context, id string) error
+	GetUserByID(ctx context.Context, id string) (*data.User, error)
+	FollowUser(ctx context.Context, followerID, followeeID string) error
+	UnfollowUser(ctx context.Context, followerID, followeeID string) error
+}
 
 var (
 	ErrUnableToConnect = errors.New("unable to connect to Postgres DB")
@@ -35,6 +46,7 @@ func NewClient(ctx context.Context, dsn string) (*Client, error) {
 
 var registers = []func(context.Context, *pgx.Conn) error{
 	registerUser,
+	registerFollows,
 }
 
 func migrate(ctx context.Context, db *pgx.Conn) error {

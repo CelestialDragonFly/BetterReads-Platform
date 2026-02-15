@@ -7,13 +7,13 @@ import (
 )
 
 type Config struct {
-	SQLClient   *postgres.Client
+	SQLClient   postgres.API
 	OpenLibrary openlibrary.ClientInterface
 }
 
 type Server struct {
 	betterreads.UnimplementedBetterReadsServiceServer
-	DB          *postgres.Client
+	DB          postgres.API
 	OpenLibrary openlibrary.ClientInterface
 }
 

@@ -9,6 +9,9 @@ import (
 	"github.com/celestialdragonfly/betterreads/internal/data"
 	"github.com/celestialdragonfly/betterreads/internal/headers"
 	"github.com/celestialdragonfly/betterreads/internal/logger"
+	"github.com/celestialdragonfly/betterreads/internal/postgres"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -16,11 +19,16 @@ import (
 func (s *Server) DeleteUserProfile(ctx context.Context, _ *betterreads.DeleteUserProfileRequest) (*betterreads.DeleteUserProfileResponse, error) {
 	userID, ok := headers.GetUserID(ctx)
 	if !ok {
-		return nil, errors.New("unable to retrieve user_id from context")
+		return nil, status.Error(codes.Unauthenticated, "unable to retrieve user_id from context")
 	}
 
 	if err := s.DB.ProfileDelete(ctx, userID); err != nil {
-		return nil, err
+		switch {
+		case errors.Is(err, postgres.ErrUserNotFound):
+			return nil, status.Error(codes.NotFound, "user not found")
+		default:
+			return nil, status.Error(codes.Internal, "failed to delete profile")
+		}
 	}
 
 	return &betterreads.DeleteUserProfileResponse{}, nil
@@ -30,12 +38,17 @@ func (s *Server) DeleteUserProfile(ctx context.Context, _ *betterreads.DeleteUse
 func (s *Server) GetCurrentUserProfile(ctx context.Context, _ *betterreads.GetCurrentUserProfileRequest) (*betterreads.GetCurrentUserProfileResponse, error) {
 	userID, ok := headers.GetUserID(ctx)
 	if !ok {
-		return nil, errors.New("unable to retrieve user_id from context")
+		return nil, status.Error(codes.Unauthenticated, "unable to retrieve user_id from context")
 	}
 
 	profile, err := s.DB.ProfileGet(ctx, userID)
 	if err != nil {
-		return nil, err
+		switch {
+		case errors.Is(err, postgres.ErrUserNotFound):
+			return nil, status.Error(codes.NotFound, "user not found")
+		default:
+			return nil, status.Error(codes.Internal, "failed to get profile")
+		}
 	}
 
 	return &betterreads.GetCurrentUserProfileResponse{
@@ -53,7 +66,7 @@ func (s *Server) GetCurrentUserProfile(ctx context.Context, _ *betterreads.GetCu
 func (s *Server) UpdateUserProfile(ctx context.Context, request *betterreads.UpdateUserProfileRequest) (*betterreads.UpdateUserProfileResponse, error) {
 	userID, ok := headers.GetUserID(ctx)
 	if !ok {
-		return nil, errors.New("unable to retrieve user_id from context")
+		return nil, status.Error(codes.Unauthenticated, "unable to retrieve user_id from context")
 	}
 
 	update := data.User{
@@ -66,7 +79,16 @@ func (s *Server) UpdateUserProfile(ctx context.Context, request *betterreads.Upd
 
 	updatedUser, err := s.DB.ProfileUpdate(ctx, userID, &update)
 	if err != nil {
-		return nil, err
+		switch {
+		case errors.Is(err, postgres.ErrUserNotFound):
+			return nil, status.Error(codes.NotFound, "user not found")
+		case errors.Is(err, postgres.ErrUserNameExists):
+			return nil, status.Error(codes.AlreadyExists, "username already exists")
+		case errors.Is(err, postgres.ErrEmailExists):
+			return nil, status.Error(codes.AlreadyExists, "email already exists")
+		default:
+			return nil, status.Error(codes.Internal, "failed to update profile")
+		}
 	}
 
 	return &betterreads.UpdateUserProfileResponse{
@@ -84,7 +106,7 @@ func (s *Server) UpdateUserProfile(ctx context.Context, request *betterreads.Upd
 func (s *Server) CreateUserProfile(ctx context.Context, request *betterreads.CreateUserProfileRequest) (*betterreads.CreateUserProfileResponse, error) {
 	userID, ok := headers.GetUserID(ctx)
 	if !ok {
-		return nil, errors.New("unable to retrieve user_id from context")
+		return nil, status.Error(codes.Unauthenticated, "unable to retrieve user_id from context")
 	}
 
 	newProfile := data.User{
@@ -97,16 +119,23 @@ func (s *Server) CreateUserProfile(ctx context.Context, request *betterreads.Cre
 	}
 
 	if len(newProfile.GetUsername()) < 3 { //nolint: mnd // minimum username length
-		return nil, errors.New("username must be at least 3 characters")
+		return nil, status.Error(codes.InvalidArgument, "username must be at least 3 characters")
 	}
 
 	if !isValidEmail(newProfile.GetEmail()) {
-		return nil, errors.New("invalid email address")
+		return nil, status.Error(codes.InvalidArgument, "invalid email address")
 	}
 
 	createdProfile, err := s.DB.ProfileCreate(ctx, &newProfile)
 	if err != nil {
-		return nil, err
+		switch {
+		case errors.Is(err, postgres.ErrUserNameExists):
+			return nil, status.Error(codes.AlreadyExists, "username already exists")
+		case errors.Is(err, postgres.ErrEmailExists):
+			return nil, status.Error(codes.AlreadyExists, "email already exists")
+		default:
+			return nil, status.Error(codes.Internal, "failed to create profile")
+		}
 	}
 
 	return &betterreads.CreateUserProfileResponse{
