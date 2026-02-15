@@ -11,97 +11,13 @@ import (
 	"github.com/celestialdragonfly/betterreads/internal/headers"
 	"github.com/celestialdragonfly/betterreads/internal/postgres"
 	"github.com/celestialdragonfly/betterreads/internal/postgres/mocks"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
-
-// Helper function to check error status code.
-func checkErrorCode(t *testing.T, err error, wantCode codes.Code, methodName string) {
-	t.Helper()
-	if err == nil {
-		t.Errorf("%s() error = nil, wantErr true", methodName)
-		return
-	}
-	st, ok := status.FromError(err)
-	if !ok {
-		t.Errorf("%s() error is not a status error", methodName)
-		return
-	}
-	if st.Code() != wantCode {
-		t.Errorf("%s() code = %v, want %v", methodName, st.Code(), wantCode)
-	}
-}
-
-// Helper function to verify no error occurred.
-func checkNoError(t *testing.T, err error, methodName string) {
-	t.Helper()
-	if err != nil {
-		t.Errorf("%s() unexpected error = %v", methodName, err)
-	}
-}
-
-// Helper function to verify response is not nil.
-func checkResponseNotNil(t *testing.T, resp interface{}, methodName string) bool {
-	t.Helper()
-	if resp == nil {
-		t.Errorf("%s() response is nil", methodName)
-		return false
-	}
-	return true
-}
-
-// Helper function to compare profile response fields.
-func compareProfileFields(t *testing.T, got, want *betterreads.GetCurrentUserProfileResponse, methodName string) {
-	t.Helper()
-	if got.Id != want.Id {
-		t.Errorf("%s() Id = %v, want %v", methodName, got.Id, want.Id)
-	}
-	if got.Username != want.Username {
-		t.Errorf("%s() Username = %v, want %v", methodName, got.Username, want.Username)
-	}
-	if got.Email != want.Email {
-		t.Errorf("%s() Email = %v, want %v", methodName, got.Email, want.Email)
-	}
-	if got.FirstName != want.FirstName {
-		t.Errorf("%s() FirstName = %v, want %v", methodName, got.FirstName, want.FirstName)
-	}
-	if got.LastName != want.LastName {
-		t.Errorf("%s() LastName = %v, want %v", methodName, got.LastName, want.LastName)
-	}
-	if got.ProfilePhotoUrl != want.ProfilePhotoUrl {
-		t.Errorf("%s() ProfilePhotoUrl = %v, want %v", methodName, got.ProfilePhotoUrl, want.ProfilePhotoUrl)
-	}
-}
-
-// Helper function to compare update profile response fields.
-func compareUpdateProfileFields(t *testing.T, got, want *betterreads.UpdateUserProfileResponse, methodName string) {
-	t.Helper()
-	if got.Id != want.Id {
-		t.Errorf("%s() Id = %v, want %v", methodName, got.Id, want.Id)
-	}
-	if got.Username != want.Username {
-		t.Errorf("%s() Username = %v, want %v", methodName, got.Username, want.Username)
-	}
-	if got.Email != want.Email {
-		t.Errorf("%s() Email = %v, want %v", methodName, got.Email, want.Email)
-	}
-}
-
-// Helper function to compare create profile response fields.
-func compareCreateProfileFields(t *testing.T, got, want *betterreads.CreateUserProfileResponse, methodName string) {
-	t.Helper()
-	if got.Id != want.Id {
-		t.Errorf("%s() Id = %v, want %v", methodName, got.Id, want.Id)
-	}
-	if got.Username != want.Username {
-		t.Errorf("%s() Username = %v, want %v", methodName, got.Username, want.Username)
-	}
-	if got.Email != want.Email {
-		t.Errorf("%s() Email = %v, want %v", methodName, got.Email, want.Email)
-	}
-}
 
 func TestServer_DeleteUserProfile(t *testing.T) {
 	t.Parallel()
@@ -170,16 +86,18 @@ func TestServer_DeleteUserProfile(t *testing.T) {
 			tt.setupMock(mockDB)
 
 			s := &Server{DB: mockDB}
-
 			resp, err := s.DeleteUserProfile(tt.ctx, &betterreads.DeleteUserProfileRequest{})
 
 			if tt.wantErr {
-				checkErrorCode(t, err, tt.wantCode, "DeleteUserProfile")
+				require.Error(t, err)
+				st, ok := status.FromError(err)
+				require.True(t, ok, "error should be a status error")
+				assert.Equal(t, tt.wantCode, st.Code())
 				return
 			}
 
-			checkNoError(t, err, "DeleteUserProfile")
-			checkResponseNotNil(t, resp, "DeleteUserProfile")
+			require.NoError(t, err)
+			assert.NotNil(t, resp)
 		})
 	}
 }
@@ -272,20 +190,24 @@ func TestServer_GetCurrentUserProfile(t *testing.T) {
 			tt.setupMock(mockDB)
 
 			s := &Server{DB: mockDB}
-
 			resp, err := s.GetCurrentUserProfile(tt.ctx, &betterreads.GetCurrentUserProfileRequest{})
 
 			if tt.wantErr {
-				checkErrorCode(t, err, tt.wantCode, "GetCurrentUserProfile")
+				require.Error(t, err)
+				st, ok := status.FromError(err)
+				require.True(t, ok, "error should be a status error")
+				assert.Equal(t, tt.wantCode, st.Code())
 				return
 			}
 
-			checkNoError(t, err, "GetCurrentUserProfile")
-			if !checkResponseNotNil(t, resp, "GetCurrentUserProfile") {
-				return
-			}
-
-			compareProfileFields(t, resp, tt.wantResp, "GetCurrentUserProfile")
+			require.NoError(t, err)
+			require.NotNil(t, resp)
+			assert.Equal(t, tt.wantResp.Id, resp.Id)
+			assert.Equal(t, tt.wantResp.Username, resp.Username)
+			assert.Equal(t, tt.wantResp.Email, resp.Email)
+			assert.Equal(t, tt.wantResp.FirstName, resp.FirstName)
+			assert.Equal(t, tt.wantResp.LastName, resp.LastName)
+			assert.Equal(t, tt.wantResp.ProfilePhotoUrl, resp.ProfilePhotoUrl)
 		})
 	}
 }
@@ -423,20 +345,21 @@ func TestServer_UpdateUserProfile(t *testing.T) {
 			tt.setupMock(mockDB)
 
 			s := &Server{DB: mockDB}
-
 			resp, err := s.UpdateUserProfile(tt.ctx, tt.request)
 
 			if tt.wantErr {
-				checkErrorCode(t, err, tt.wantCode, "UpdateUserProfile")
+				require.Error(t, err)
+				st, ok := status.FromError(err)
+				require.True(t, ok, "error should be a status error")
+				assert.Equal(t, tt.wantCode, st.Code())
 				return
 			}
 
-			checkNoError(t, err, "UpdateUserProfile")
-			if !checkResponseNotNil(t, resp, "UpdateUserProfile") {
-				return
-			}
-
-			compareUpdateProfileFields(t, resp, tt.wantResp, "UpdateUserProfile")
+			require.NoError(t, err)
+			require.NotNil(t, resp)
+			assert.Equal(t, tt.wantResp.Id, resp.Id)
+			assert.Equal(t, tt.wantResp.Username, resp.Username)
+			assert.Equal(t, tt.wantResp.Email, resp.Email)
 		})
 	}
 }
@@ -598,20 +521,21 @@ func TestServer_CreateUserProfile(t *testing.T) {
 			tt.setupMock(mockDB)
 
 			s := &Server{DB: mockDB}
-
 			resp, err := s.CreateUserProfile(tt.ctx, tt.request)
 
 			if tt.wantErr {
-				checkErrorCode(t, err, tt.wantCode, "CreateUserProfile")
+				require.Error(t, err)
+				st, ok := status.FromError(err)
+				require.True(t, ok, "error should be a status error")
+				assert.Equal(t, tt.wantCode, st.Code())
 				return
 			}
 
-			checkNoError(t, err, "CreateUserProfile")
-			if !checkResponseNotNil(t, resp, "CreateUserProfile") {
-				return
-			}
-
-			compareCreateProfileFields(t, resp, tt.wantResp, "CreateUserProfile")
+			require.NoError(t, err)
+			require.NotNil(t, resp)
+			assert.Equal(t, tt.wantResp.Id, resp.Id)
+			assert.Equal(t, tt.wantResp.Username, resp.Username)
+			assert.Equal(t, tt.wantResp.Email, resp.Email)
 		})
 	}
 }
@@ -671,9 +595,7 @@ func Test_isValidEmail(t *testing.T) {
 			t.Parallel()
 
 			got := isValidEmail(tt.email)
-			if got != tt.want {
-				t.Errorf("isValidEmail() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
