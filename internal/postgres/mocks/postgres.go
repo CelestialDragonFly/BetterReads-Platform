@@ -55,6 +55,21 @@ func (mr *MockAPIMockRecorder) FollowUser(ctx, followerID, followeeID any) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FollowUser", reflect.TypeOf((*MockAPI)(nil).FollowUser), ctx, followerID, followeeID)
 }
 
+// GetUserByID mocks base method.
+func (m *MockAPI) GetUserByID(ctx context.Context, id string) (*data.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByID", ctx, id)
+	ret0, _ := ret[0].(*data.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserByID indicates an expected call of GetUserByID.
+func (mr *MockAPIMockRecorder) GetUserByID(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByID", reflect.TypeOf((*MockAPI)(nil).GetUserByID), ctx, id)
+}
+
 // ProfileCreate mocks base method.
 func (m *MockAPI) ProfileCreate(ctx context.Context, profile *data.User) (*data.User, error) {
 	m.ctrl.T.Helper()

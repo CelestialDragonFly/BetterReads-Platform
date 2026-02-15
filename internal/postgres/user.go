@@ -76,7 +76,7 @@ func (db *Client) UnfollowUser(ctx context.Context, followerID, followeeID strin
 	}
 
 	query := `
-        DELETE FROM follows 
+        DELETE FROM follows
         WHERE follower_id = $1 AND followee_id = $2
     `
 
