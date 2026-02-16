@@ -41,6 +41,49 @@ func (m *MockAPI) EXPECT() *MockAPIMockRecorder {
 	return m.recorder
 }
 
+// AddBookToShelf mocks base method.
+func (m *MockAPI) AddBookToShelf(ctx context.Context, userID, bookID, shelfID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddBookToShelf", ctx, userID, bookID, shelfID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddBookToShelf indicates an expected call of AddBookToShelf.
+func (mr *MockAPIMockRecorder) AddBookToShelf(ctx, userID, bookID, shelfID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddBookToShelf", reflect.TypeOf((*MockAPI)(nil).AddBookToShelf), ctx, userID, bookID, shelfID)
+}
+
+// CreateShelf mocks base method.
+func (m *MockAPI) CreateShelf(ctx context.Context, shelf *data.Shelf) (*data.Shelf, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateShelf", ctx, shelf)
+	ret0, _ := ret[0].(*data.Shelf)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateShelf indicates an expected call of CreateShelf.
+func (mr *MockAPIMockRecorder) CreateShelf(ctx, shelf any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateShelf", reflect.TypeOf((*MockAPI)(nil).CreateShelf), ctx, shelf)
+}
+
+// DeleteShelf mocks base method.
+func (m *MockAPI) DeleteShelf(ctx context.Context, id string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteShelf", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteShelf indicates an expected call of DeleteShelf.
+func (mr *MockAPIMockRecorder) DeleteShelf(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteShelf", reflect.TypeOf((*MockAPI)(nil).DeleteShelf), ctx, id)
+}
+
 // FollowUser mocks base method.
 func (m *MockAPI) FollowUser(ctx context.Context, followerID, followeeID string) error {
 	m.ctrl.T.Helper()
@@ -53,6 +96,21 @@ func (m *MockAPI) FollowUser(ctx context.Context, followerID, followeeID string)
 func (mr *MockAPIMockRecorder) FollowUser(ctx, followerID, followeeID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FollowUser", reflect.TypeOf((*MockAPI)(nil).FollowUser), ctx, followerID, followeeID)
+}
+
+// GetShelfBooks mocks base method.
+func (m *MockAPI) GetShelfBooks(ctx context.Context, shelfID string) ([]*data.LibraryBook, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetShelfBooks", ctx, shelfID)
+	ret0, _ := ret[0].([]*data.LibraryBook)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetShelfBooks indicates an expected call of GetShelfBooks.
+func (mr *MockAPIMockRecorder) GetShelfBooks(ctx, shelfID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetShelfBooks", reflect.TypeOf((*MockAPI)(nil).GetShelfBooks), ctx, shelfID)
 }
 
 // GetUserByID mocks base method.
@@ -68,6 +126,36 @@ func (m *MockAPI) GetUserByID(ctx context.Context, id string) (*data.User, error
 func (mr *MockAPIMockRecorder) GetUserByID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByID", reflect.TypeOf((*MockAPI)(nil).GetUserByID), ctx, id)
+}
+
+// GetUserLibrary mocks base method.
+func (m *MockAPI) GetUserLibrary(ctx context.Context, userID string) ([]*data.LibraryBook, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserLibrary", ctx, userID)
+	ret0, _ := ret[0].([]*data.LibraryBook)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserLibrary indicates an expected call of GetUserLibrary.
+func (mr *MockAPIMockRecorder) GetUserLibrary(ctx, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserLibrary", reflect.TypeOf((*MockAPI)(nil).GetUserLibrary), ctx, userID)
+}
+
+// GetUserShelves mocks base method.
+func (m *MockAPI) GetUserShelves(ctx context.Context, userID string) ([]*data.Shelf, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserShelves", ctx, userID)
+	ret0, _ := ret[0].([]*data.Shelf)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserShelves indicates an expected call of GetUserShelves.
+func (mr *MockAPIMockRecorder) GetUserShelves(ctx, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserShelves", reflect.TypeOf((*MockAPI)(nil).GetUserShelves), ctx, userID)
 }
 
 // ProfileCreate mocks base method.
@@ -129,6 +217,34 @@ func (mr *MockAPIMockRecorder) ProfileUpdate(ctx, id, updates any) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProfileUpdate", reflect.TypeOf((*MockAPI)(nil).ProfileUpdate), ctx, id, updates)
 }
 
+// RemoveBookFromShelf mocks base method.
+func (m *MockAPI) RemoveBookFromShelf(ctx context.Context, userID, bookID, shelfID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveBookFromShelf", ctx, userID, bookID, shelfID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RemoveBookFromShelf indicates an expected call of RemoveBookFromShelf.
+func (mr *MockAPIMockRecorder) RemoveBookFromShelf(ctx, userID, bookID, shelfID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveBookFromShelf", reflect.TypeOf((*MockAPI)(nil).RemoveBookFromShelf), ctx, userID, bookID, shelfID)
+}
+
+// RemoveLibraryBook mocks base method.
+func (m *MockAPI) RemoveLibraryBook(ctx context.Context, userID, bookID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveLibraryBook", ctx, userID, bookID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RemoveLibraryBook indicates an expected call of RemoveLibraryBook.
+func (mr *MockAPIMockRecorder) RemoveLibraryBook(ctx, userID, bookID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveLibraryBook", reflect.TypeOf((*MockAPI)(nil).RemoveLibraryBook), ctx, userID, bookID)
+}
+
 // UnfollowUser mocks base method.
 func (m *MockAPI) UnfollowUser(ctx context.Context, followerID, followeeID string) error {
 	m.ctrl.T.Helper()
@@ -141,4 +257,33 @@ func (m *MockAPI) UnfollowUser(ctx context.Context, followerID, followeeID strin
 func (mr *MockAPIMockRecorder) UnfollowUser(ctx, followerID, followeeID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnfollowUser", reflect.TypeOf((*MockAPI)(nil).UnfollowUser), ctx, followerID, followeeID)
+}
+
+// UpdateLibraryBook mocks base method.
+func (m *MockAPI) UpdateLibraryBook(ctx context.Context, book *data.LibraryBook) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateLibraryBook", ctx, book)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateLibraryBook indicates an expected call of UpdateLibraryBook.
+func (mr *MockAPIMockRecorder) UpdateLibraryBook(ctx, book any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateLibraryBook", reflect.TypeOf((*MockAPI)(nil).UpdateLibraryBook), ctx, book)
+}
+
+// UpdateShelf mocks base method.
+func (m *MockAPI) UpdateShelf(ctx context.Context, shelf *data.Shelf) (*data.Shelf, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateShelf", ctx, shelf)
+	ret0, _ := ret[0].(*data.Shelf)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateShelf indicates an expected call of UpdateShelf.
+func (mr *MockAPIMockRecorder) UpdateShelf(ctx, shelf any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateShelf", reflect.TypeOf((*MockAPI)(nil).UpdateShelf), ctx, shelf)
 }
