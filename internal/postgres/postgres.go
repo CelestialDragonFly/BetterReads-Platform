@@ -21,9 +21,9 @@ type API interface {
 	// Library
 	CreateShelf(ctx context.Context, shelf *data.Shelf) (*data.Shelf, error)
 	UpdateShelf(ctx context.Context, shelf *data.Shelf) (*data.Shelf, error)
-	DeleteShelf(ctx context.Context, id string) error
+	DeleteShelf(ctx context.Context, userID, id string) error
 	GetUserShelves(ctx context.Context, userID string) ([]*data.Shelf, error)
-	GetShelfBooks(ctx context.Context, shelfID string) ([]*data.LibraryBook, error)
+	GetShelfBooks(ctx context.Context, userID, shelfID string) ([]*data.LibraryBook, error)
 	UpdateLibraryBook(ctx context.Context, book *data.LibraryBook) error
 	RemoveLibraryBook(ctx context.Context, userID, bookID string) error
 	GetUserLibrary(ctx context.Context, userID string) ([]*data.LibraryBook, error)

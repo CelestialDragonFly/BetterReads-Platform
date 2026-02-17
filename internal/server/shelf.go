@@ -2,10 +2,13 @@ package server
 
 import (
 	"context"
+	"errors"
+	"time"
 
 	betterreads "github.com/celestialdragonfly/betterreads/generated"
 	"github.com/celestialdragonfly/betterreads/internal/data"
 	"github.com/celestialdragonfly/betterreads/internal/headers"
+	"github.com/celestialdragonfly/betterreads/internal/postgres"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -23,14 +26,20 @@ func (s *Server) CreateShelf(ctx context.Context, req *betterreads.CreateShelfRe
 	}
 
 	shelfID := uuid.New().String()
+	now := time.Now()
 	shelf := &data.Shelf{
-		ID:     shelfID,
-		Name:   req.Name,
-		UserID: userID,
+		ID:        shelfID,
+		Name:      req.Name,
+		UserID:    userID,
+		CreatedAt: now,
+		UpdatedAt: now,
 	}
 
 	createdShelf, err := s.DB.CreateShelf(ctx, shelf)
 	if err != nil {
+		if errors.Is(err, postgres.ErrShelfNameExists) {
+			return nil, status.Error(codes.AlreadyExists, "shelf with this name already exists")
+		}
 		return nil, status.Errorf(codes.Internal, "failed to create shelf: %v", err)
 	}
 
@@ -59,27 +68,25 @@ func (s *Server) UpdateShelf(ctx context.Context, req *betterreads.UpdateShelfRe
 	// API UpdateShelf expects full object or partial?
 	// DB UpdateShelf updates fields provided.
 
-	shelf := &data.Shelf{
-		ID:     req.ShelfId,
-		UserID: userID,
-		Name:   req.Name, // optional? If empty, DB might set empty. Should check.
+	if req.Name == "" {
+		return nil, status.Error(codes.InvalidArgument, "shelf name cannot be empty")
 	}
 
-	// Proto comment says: "Optional: if provided, renames the shelf".
-	// DB implementation logic:
-	/*
-	   UPDATE shelves
-	   SET name = $2, updated_at = $3
-	   WHERE id = $1
-	*/
-	// If req.Name is empty, we probably shouldn't update it to empty string unless that's intended.
-	// But DB implementation strictly sets it.
-	// So if Name is empty, we should fetch existing or error?
-	// Let's assume Name acts as "Set Name".
-	// If req.Name is empty, DB implementation might set it to empty or fail validation, but we pass it through.
+	shelf := &data.Shelf{
+		ID:        req.ShelfId,
+		UserID:    userID,
+		Name:      req.Name,
+		UpdatedAt: time.Now(),
+	}
 
 	updatedShelf, err := s.DB.UpdateShelf(ctx, shelf)
 	if err != nil {
+		if errors.Is(err, postgres.ErrShelfNotFound) {
+			return nil, status.Error(codes.NotFound, "shelf not found")
+		}
+		if errors.Is(err, postgres.ErrShelfNameExists) {
+			return nil, status.Error(codes.AlreadyExists, "shelf name already exists")
+		}
 		return nil, status.Errorf(codes.Internal, "failed to update shelf: %v", err)
 	}
 
@@ -95,7 +102,7 @@ func (s *Server) UpdateShelf(ctx context.Context, req *betterreads.UpdateShelfRe
 }
 
 func (s *Server) DeleteShelf(ctx context.Context, req *betterreads.DeleteShelfRequest) (*betterreads.DeleteShelfResponse, error) {
-	_, ok := headers.GetUserID(ctx)
+	userID, ok := headers.GetUserID(ctx)
 	if !ok {
 		return nil, status.Error(codes.Unauthenticated, "user not found in context")
 	}
@@ -104,16 +111,10 @@ func (s *Server) DeleteShelf(ctx context.Context, req *betterreads.DeleteShelfRe
 		return nil, status.Error(codes.InvalidArgument, "shelf id is required")
 	}
 
-	// We should probably verify ownership before deleting.
-	// DB `DeleteShelf` just deletes by ID.
-	// So technically one user could delete another's shelf if they guess ID.
-	// Since this is MVP, we assume ID is secret enough or add ownership check.
-	// Correct approach: `DELETE FROM shelves WHERE id = $1 AND user_id = $2`.
-	// My DB implementation: `DELETE FROM shelves WHERE id = $1`.
-	// I should fix DB implementation or live with it.
-	// I will implicitly trust the layer for now or fetch first.
-
-	if err := s.DB.DeleteShelf(ctx, req.ShelfId); err != nil {
+	if err := s.DB.DeleteShelf(ctx, userID, req.ShelfId); err != nil {
+		if errors.Is(err, postgres.ErrShelfNotFound) {
+			return nil, status.Error(codes.NotFound, "shelf not found")
+		}
 		return nil, status.Errorf(codes.Internal, "failed to delete shelf: %v", err)
 	}
 
@@ -121,19 +122,19 @@ func (s *Server) DeleteShelf(ctx context.Context, req *betterreads.DeleteShelfRe
 }
 
 func (s *Server) GetUserShelves(ctx context.Context, req *betterreads.GetUserShelvesRequest) (*betterreads.GetUserShelvesResponse, error) {
-	// req.UserId exists. If empty, use current user?
-	// Proto: "Get all shelves for a user". path: /api/v1/shelves/{user_id}.
+	userID, ok := headers.GetUserID(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "user not found in context")
+	}
 
 	targetUserID := req.UserId
 	if targetUserID == "" {
-		// Fallback to authenticated user?
-		// Or error.
-		uid, ok := headers.GetUserID(ctx)
-		if ok {
-			targetUserID = uid
-		} else {
-			return nil, status.Error(codes.InvalidArgument, "user_id is required")
-		}
+		targetUserID = userID
+	}
+
+	// Only allow users to view their own shelves (privacy protection)
+	if targetUserID != userID {
+		return nil, status.Error(codes.PermissionDenied, "you can only view your own shelves")
 	}
 
 	shelves, err := s.DB.GetUserShelves(ctx, targetUserID)
@@ -158,11 +159,16 @@ func (s *Server) GetUserShelves(ctx context.Context, req *betterreads.GetUserShe
 }
 
 func (s *Server) GetShelfBooks(ctx context.Context, req *betterreads.GetShelfBooksRequest) (*betterreads.GetShelfBooksResponse, error) {
+	userID, ok := headers.GetUserID(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "user not found in context")
+	}
+
 	if req.ShelfId == "" {
 		return nil, status.Error(codes.InvalidArgument, "shelf_id is required")
 	}
 
-	books, err := s.DB.GetShelfBooks(ctx, req.ShelfId)
+	books, err := s.DB.GetShelfBooks(ctx, userID, req.ShelfId)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get shelf books: %v", err)
 	}
@@ -202,7 +208,21 @@ func (s *Server) AddBookToShelf(ctx context.Context, req *betterreads.AddBookToS
 		return nil, status.Error(codes.Unauthenticated, "user not found in context")
 	}
 
+	if req.BookId == "" {
+		return nil, status.Error(codes.InvalidArgument, "book_id is required")
+	}
+
+	if req.ShelfId == "" {
+		return nil, status.Error(codes.InvalidArgument, "shelf_id is required")
+	}
+
 	if err := s.DB.AddBookToShelf(ctx, userID, req.BookId, req.ShelfId); err != nil {
+		if errors.Is(err, postgres.ErrBookNotFound) {
+			return nil, status.Error(codes.NotFound, "book not found in library")
+		}
+		if errors.Is(err, postgres.ErrShelfNotFound) {
+			return nil, status.Error(codes.NotFound, "shelf not found")
+		}
 		return nil, status.Errorf(codes.Internal, "failed to add book to shelf: %v", err)
 	}
 
@@ -213,6 +233,14 @@ func (s *Server) RemoveBookFromShelf(ctx context.Context, req *betterreads.Remov
 	userID, ok := headers.GetUserID(ctx)
 	if !ok {
 		return nil, status.Error(codes.Unauthenticated, "user not found in context")
+	}
+
+	if req.BookId == "" {
+		return nil, status.Error(codes.InvalidArgument, "book_id is required")
+	}
+
+	if req.ShelfId == "" {
+		return nil, status.Error(codes.InvalidArgument, "shelf_id is required")
 	}
 
 	if err := s.DB.RemoveBookFromShelf(ctx, userID, req.BookId, req.ShelfId); err != nil {

@@ -71,17 +71,17 @@ func (mr *MockAPIMockRecorder) CreateShelf(ctx, shelf any) *gomock.Call {
 }
 
 // DeleteShelf mocks base method.
-func (m *MockAPI) DeleteShelf(ctx context.Context, id string) error {
+func (m *MockAPI) DeleteShelf(ctx context.Context, userID, id string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteShelf", ctx, id)
+	ret := m.ctrl.Call(m, "DeleteShelf", ctx, userID, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteShelf indicates an expected call of DeleteShelf.
-func (mr *MockAPIMockRecorder) DeleteShelf(ctx, id any) *gomock.Call {
+func (mr *MockAPIMockRecorder) DeleteShelf(ctx, userID, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteShelf", reflect.TypeOf((*MockAPI)(nil).DeleteShelf), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteShelf", reflect.TypeOf((*MockAPI)(nil).DeleteShelf), ctx, userID, id)
 }
 
 // FollowUser mocks base method.
@@ -99,18 +99,18 @@ func (mr *MockAPIMockRecorder) FollowUser(ctx, followerID, followeeID any) *gomo
 }
 
 // GetShelfBooks mocks base method.
-func (m *MockAPI) GetShelfBooks(ctx context.Context, shelfID string) ([]*data.LibraryBook, error) {
+func (m *MockAPI) GetShelfBooks(ctx context.Context, userID, shelfID string) ([]*data.LibraryBook, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetShelfBooks", ctx, shelfID)
+	ret := m.ctrl.Call(m, "GetShelfBooks", ctx, userID, shelfID)
 	ret0, _ := ret[0].([]*data.LibraryBook)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetShelfBooks indicates an expected call of GetShelfBooks.
-func (mr *MockAPIMockRecorder) GetShelfBooks(ctx, shelfID any) *gomock.Call {
+func (mr *MockAPIMockRecorder) GetShelfBooks(ctx, userID, shelfID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetShelfBooks", reflect.TypeOf((*MockAPI)(nil).GetShelfBooks), ctx, shelfID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetShelfBooks", reflect.TypeOf((*MockAPI)(nil).GetShelfBooks), ctx, userID, shelfID)
 }
 
 // GetUserByID mocks base method.

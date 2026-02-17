@@ -2,11 +2,13 @@ package server
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	betterreads "github.com/celestialdragonfly/betterreads/generated"
 	"github.com/celestialdragonfly/betterreads/internal/data"
 	"github.com/celestialdragonfly/betterreads/internal/headers"
+	"github.com/celestialdragonfly/betterreads/internal/postgres"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -24,6 +26,9 @@ func (s *Server) RemoveLibraryBook(ctx context.Context, req *betterreads.RemoveL
 	}
 
 	if err := s.DB.RemoveLibraryBook(ctx, userID, req.BookId); err != nil {
+		if errors.Is(err, postgres.ErrBookNotFound) {
+			return nil, status.Error(codes.NotFound, "book not found in library")
+		}
 		return nil, status.Errorf(codes.Internal, "failed to remove library book: %v", err)
 	}
 
@@ -41,6 +46,25 @@ func (s *Server) UpdateLibraryBook(ctx context.Context, req *betterreads.UpdateL
 		return nil, status.Error(codes.InvalidArgument, "book_id is required")
 	}
 
+	if req.Title == "" {
+		return nil, status.Error(codes.InvalidArgument, "title is required")
+	}
+
+	if req.AuthorName == "" {
+		return nil, status.Error(codes.InvalidArgument, "author_name is required")
+	}
+
+	// Validate rating range (0 = unspecified, 1-5 = actual ratings)
+	if req.Rating < 0 || req.Rating > 5 {
+		return nil, status.Error(codes.InvalidArgument, "rating must be between 0 and 5")
+	}
+
+	// Validate source enum
+	if req.Source < 0 || req.Source > 3 {
+		return nil, status.Error(codes.InvalidArgument, "invalid book source")
+	}
+
+	now := time.Now()
 	book := &data.LibraryBook{
 		UserID:     userID,
 		BookID:     req.BookId,
@@ -50,17 +74,12 @@ func (s *Server) UpdateLibraryBook(ctx context.Context, req *betterreads.UpdateL
 		Rating:     int32(req.Rating),
 		Source:     int32(req.Source),
 		ShelfIDs:   req.ShelfIds,
-		AddedAt:    time.Now(), // Default, DB ignores if update? No, DB sets. My DB implementation sets both added_at and updated_at on insert, updates updated_at on conflict.
-		// Wait, DB UpdateLibraryBook implementation:
-		/*
-		   INSERT INTO library_books (...) VALUES ($8, $9) ...
-		   SET ... updated_at = EXCLUDED.updated_at
-		*/
-		// So I should set AddedAt and UpdatedAt here.
-		UpdatedAt: time.Now(),
+		AddedAt:    now, // Used only on INSERT, preserved on UPDATE (see DB upsert query)
+		UpdatedAt:  now, // Always updated on both INSERT and UPDATE
 	}
 
 	if err := s.DB.UpdateLibraryBook(ctx, book); err != nil {
+		// UpdateLibraryBook could fail if shelf IDs are invalid, but we don't have a specific error for that yet in postgres package usually.
 		return nil, status.Errorf(codes.Internal, "failed to update library book: %v", err)
 	}
 
@@ -69,15 +88,19 @@ func (s *Server) UpdateLibraryBook(ctx context.Context, req *betterreads.UpdateL
 
 // GetUserLibrary.
 func (s *Server) GetUserLibrary(ctx context.Context, req *betterreads.GetUserLibraryRequest) (*betterreads.GetUserLibraryResponse, error) {
-	// req.UserId exists. If empty, assume current?
+	userID, ok := headers.GetUserID(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "user not found in context")
+	}
+
 	targetUserID := req.UserId
 	if targetUserID == "" {
-		uid, ok := headers.GetUserID(ctx)
-		if ok {
-			targetUserID = uid
-		} else {
-			return nil, status.Error(codes.InvalidArgument, "user_id is required")
-		}
+		targetUserID = userID
+	}
+
+	// Only allow users to view their own library (privacy protection)
+	if targetUserID != userID {
+		return nil, status.Error(codes.PermissionDenied, "you can only view your own library")
 	}
 
 	// 1. Get all shelves
