@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/celestialdragonfly/betterreads/internal/data"
+	"github.com/celestialdragonfly/betterreads/internal/logger"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 )
@@ -25,6 +27,17 @@ var (
 )
 
 func (db *Client) ProfileCreate(ctx context.Context, profile *data.User) (*data.User, error) {
+	// Start a transaction to ensure user and default shelves are created atomically
+	tx, err := db.DB.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("ProfileCreate: failed to start transaction: %w", err)
+	}
+	defer func() {
+		if rollbackErr := tx.Rollback(ctx); rollbackErr != nil && !errors.Is(rollbackErr, pgx.ErrTxClosed) {
+			logger.Error("ProfileCreate: failed to rollback transaction: %w", rollbackErr)
+		}
+	}()
+
 	query := `
 		INSERT INTO users (id, username, first_name, last_name, email, profile_photo)
 		VALUES ($1, $2, $3, $4, $5, $6)
@@ -33,7 +46,7 @@ func (db *Client) ProfileCreate(ctx context.Context, profile *data.User) (*data.
 
 	var createdAt time.Time
 
-	err := db.DB.QueryRow(
+	err = tx.QueryRow(
 		ctx,
 		query,
 		profile.ID,
@@ -62,6 +75,36 @@ func (db *Client) ProfileCreate(ctx context.Context, profile *data.User) (*data.
 	}
 
 	profile.CreatedAt = createdAt
+
+	// Create default shelves
+	defaultShelves := []string{"Want to Read", "Reading", "Read"}
+	shelfQuery := `
+		INSERT INTO shelves (id, name, user_id, is_default, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6)
+	`
+
+	now := time.Now()
+	for _, shelfName := range defaultShelves {
+		shelfID := uuid.New().String()
+		_, err = tx.Exec(
+			ctx,
+			shelfQuery,
+			shelfID,
+			shelfName,
+			profile.ID,
+			true, // is_default
+			now,
+			now,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("ProfileCreate: failed to create default shelf '%s': %w", shelfName, err)
+		}
+	}
+
+	// Commit the transaction
+	if err = tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("ProfileCreate: failed to commit transaction: %w", err)
+	}
 
 	return profile, nil
 }

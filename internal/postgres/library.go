@@ -13,18 +13,20 @@ import (
 )
 
 var (
-	ErrShelfNotFound   = errors.New("shelf not found")
-	ErrBookNotFound    = errors.New("book not found in library")
-	ErrShelfNameExists = errors.New("shelf name already exists")
-	ErrInvalidShelfID  = errors.New("invalid shelf ID")
+	ErrShelfNotFound            = errors.New("shelf not found")
+	ErrBookNotFound             = errors.New("book not found in library")
+	ErrShelfNameExists          = errors.New("shelf name already exists")
+	ErrInvalidShelfID           = errors.New("invalid shelf ID")
+	ErrCannotDeleteDefaultShelf = errors.New("cannot delete default shelf")
+	ErrCannotUpdateDefaultShelf = errors.New("cannot update default shelf")
 )
 
 // Shelf operations
 
 func (db *Client) CreateShelf(ctx context.Context, shelf *data.Shelf) (*data.Shelf, error) {
 	query := `
-		INSERT INTO shelves (id, name, user_id, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5)
+		INSERT INTO shelves (id, name, user_id, is_default, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING created_at, updated_at
 	`
 
@@ -34,6 +36,7 @@ func (db *Client) CreateShelf(ctx context.Context, shelf *data.Shelf) (*data.She
 		shelf.ID,
 		shelf.Name,
 		shelf.UserID,
+		shelf.IsDefault,
 		shelf.CreatedAt,
 		shelf.UpdatedAt,
 	).Scan(&shelf.CreatedAt, &shelf.UpdatedAt)
@@ -51,15 +54,30 @@ func (db *Client) CreateShelf(ctx context.Context, shelf *data.Shelf) (*data.She
 }
 
 func (db *Client) UpdateShelf(ctx context.Context, shelf *data.Shelf) (*data.Shelf, error) {
+	// First check if this is a default shelf
+	checkQuery := `SELECT is_default FROM shelves WHERE id = $1 AND user_id = $2`
+	var isDefault bool
+	err := db.DB.QueryRow(ctx, checkQuery, shelf.ID, shelf.UserID).Scan(&isDefault)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrShelfNotFound
+		}
+		return nil, fmt.Errorf("UpdateShelf check: %w", err)
+	}
+
+	if isDefault {
+		return nil, ErrCannotUpdateDefaultShelf
+	}
+
 	query := `
 		UPDATE shelves
 		SET name = $2, updated_at = $3
 		WHERE id = $1 AND user_id = $4
-		RETURNING id, name, user_id, created_at, updated_at
+		RETURNING id, name, user_id, is_default, created_at, updated_at
 	`
 
 	var updatedShelf data.Shelf
-	err := db.DB.QueryRow(
+	err = db.DB.QueryRow(
 		ctx,
 		query,
 		shelf.ID,
@@ -70,6 +88,7 @@ func (db *Client) UpdateShelf(ctx context.Context, shelf *data.Shelf) (*data.She
 		&updatedShelf.ID,
 		&updatedShelf.Name,
 		&updatedShelf.UserID,
+		&updatedShelf.IsDefault,
 		&updatedShelf.CreatedAt,
 		&updatedShelf.UpdatedAt,
 	)
@@ -90,6 +109,21 @@ func (db *Client) UpdateShelf(ctx context.Context, shelf *data.Shelf) (*data.She
 }
 
 func (db *Client) DeleteShelf(ctx context.Context, userID, id string) error {
+	// First check if this is a default shelf
+	checkQuery := `SELECT is_default FROM shelves WHERE id = $1 AND user_id = $2`
+	var isDefault bool
+	err := db.DB.QueryRow(ctx, checkQuery, id, userID).Scan(&isDefault)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrShelfNotFound
+		}
+		return fmt.Errorf("DeleteShelf check: %w", err)
+	}
+
+	if isDefault {
+		return ErrCannotDeleteDefaultShelf
+	}
+
 	query := `DELETE FROM shelves WHERE id = $1 AND user_id = $2`
 	result, err := db.DB.Exec(ctx, query, id, userID)
 	if err != nil {
@@ -103,10 +137,10 @@ func (db *Client) DeleteShelf(ctx context.Context, userID, id string) error {
 
 func (db *Client) GetUserShelves(ctx context.Context, userID string) ([]*data.Shelf, error) {
 	query := `
-		SELECT id, name, user_id, created_at, updated_at
+		SELECT id, name, user_id, is_default, created_at, updated_at
 		FROM shelves
 		WHERE user_id = $1
-		ORDER BY created_at ASC
+		ORDER BY is_default DESC, created_at ASC
 	`
 
 	rows, err := db.DB.Query(ctx, query, userID)
@@ -118,7 +152,7 @@ func (db *Client) GetUserShelves(ctx context.Context, userID string) ([]*data.Sh
 	var shelves []*data.Shelf
 	for rows.Next() {
 		var s data.Shelf
-		if err := rows.Scan(&s.ID, &s.Name, &s.UserID, &s.CreatedAt, &s.UpdatedAt); err != nil {
+		if err := rows.Scan(&s.ID, &s.Name, &s.UserID, &s.IsDefault, &s.CreatedAt, &s.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("GetUserShelves scan: %w", err)
 		}
 		shelves = append(shelves, &s)
@@ -320,6 +354,7 @@ func registerLibrary(ctx context.Context, db *pgx.Conn) error {
 		id UUID PRIMARY KEY,
 		name TEXT NOT NULL,
 		user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		is_default BOOLEAN NOT NULL DEFAULT FALSE,
 		created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 		updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 		UNIQUE(user_id, name)

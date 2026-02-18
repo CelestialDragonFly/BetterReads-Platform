@@ -87,6 +87,9 @@ func (s *Server) UpdateShelf(ctx context.Context, req *betterreads.UpdateShelfRe
 		if errors.Is(err, postgres.ErrShelfNameExists) {
 			return nil, status.Error(codes.AlreadyExists, "shelf name already exists")
 		}
+		if errors.Is(err, postgres.ErrCannotUpdateDefaultShelf) {
+			return nil, status.Error(codes.PermissionDenied, "cannot update default shelf")
+		}
 		return nil, status.Errorf(codes.Internal, "failed to update shelf: %v", err)
 	}
 
@@ -114,6 +117,9 @@ func (s *Server) DeleteShelf(ctx context.Context, req *betterreads.DeleteShelfRe
 	if err := s.DB.DeleteShelf(ctx, userID, req.ShelfId); err != nil {
 		if errors.Is(err, postgres.ErrShelfNotFound) {
 			return nil, status.Error(codes.NotFound, "shelf not found")
+		}
+		if errors.Is(err, postgres.ErrCannotDeleteDefaultShelf) {
+			return nil, status.Error(codes.PermissionDenied, "cannot delete default shelf")
 		}
 		return nil, status.Errorf(codes.Internal, "failed to delete shelf: %v", err)
 	}
