@@ -235,6 +235,14 @@ enum BookSource {
   BOOK_SOURCE_MANUAL = 3;
 }
 
+enum ReadingStatus {
+  READING_STATUS_UNSPECIFIED = 0;
+  READING_STATUS_READ = 1;
+  READING_STATUS_WANT_TO_READ = 2;
+  READING_STATUS_READING = 3;
+  READING_STATUS_DID_NOT_FINISH = 4;
+}
+
 enum BookRating {
   BOOK_RATING_UNSPECIFIED = 0;
   BOOK_RATING_ONE_STAR = 1;
@@ -321,6 +329,7 @@ message LibraryBook {
   string title = 7;
   google.protobuf.Timestamp added_at = 8;
   google.protobuf.Timestamp updated_at = 9;
+  ReadingStatus reading_status = 10;
 }
 
 message ShelfWithBooks {
@@ -380,6 +389,7 @@ message UpdateLibraryBookRequest {
   BookSource source = 5;
   string title = 6;
   BookRating rating = 7;
+  ReadingStatus reading_status = 8;
 }
 
 message UpdateLibraryBookResponse {}

@@ -87,9 +87,6 @@ func (s *Server) UpdateShelf(ctx context.Context, req *betterreads.UpdateShelfRe
 		if errors.Is(err, postgres.ErrShelfNameExists) {
 			return nil, status.Error(codes.AlreadyExists, "shelf name already exists")
 		}
-		if errors.Is(err, postgres.ErrCannotUpdateDefaultShelf) {
-			return nil, status.Error(codes.PermissionDenied, "cannot update default shelf")
-		}
 		return nil, status.Errorf(codes.Internal, "failed to update shelf: %v", err)
 	}
 
@@ -117,9 +114,6 @@ func (s *Server) DeleteShelf(ctx context.Context, req *betterreads.DeleteShelfRe
 	if err := s.DB.DeleteShelf(ctx, userID, req.ShelfId); err != nil {
 		if errors.Is(err, postgres.ErrShelfNotFound) {
 			return nil, status.Error(codes.NotFound, "shelf not found")
-		}
-		if errors.Is(err, postgres.ErrCannotDeleteDefaultShelf) {
-			return nil, status.Error(codes.PermissionDenied, "cannot delete default shelf")
 		}
 		return nil, status.Errorf(codes.Internal, "failed to delete shelf: %v", err)
 	}
@@ -186,15 +180,16 @@ func (s *Server) GetShelfBooks(ctx context.Context, req *betterreads.GetShelfBoo
 	var pbBooks []*betterreads.LibraryBook
 	for _, b := range books {
 		pbBooks = append(pbBooks, &betterreads.LibraryBook{
-			AuthorName: b.AuthorName,
-			BookId:     b.BookID,
-			BookImage:  b.BookImage,
-			Rating:     betterreads.BookRating(b.Rating),
-			ShelfIds:   b.ShelfIDs,
-			Source:     betterreads.BookSource(b.Source),
-			Title:      b.Title,
-			AddedAt:    timestamppb.New(b.AddedAt),
-			UpdatedAt:  timestamppb.New(b.UpdatedAt),
+			AuthorName:    b.AuthorName,
+			BookId:        b.BookID,
+			BookImage:     b.BookImage,
+			Rating:        betterreads.BookRating(b.Rating),
+			ShelfIds:      b.ShelfIDs,
+			Source:        betterreads.BookSource(b.Source),
+			ReadingStatus: betterreads.ReadingStatus(b.ReadingStatus),
+			Title:         b.Title,
+			AddedAt:       timestamppb.New(b.AddedAt),
+			UpdatedAt:     timestamppb.New(b.UpdatedAt),
 		})
 	}
 

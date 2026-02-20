@@ -25,8 +25,8 @@ var (
 
 func (db *Client) CreateShelf(ctx context.Context, shelf *data.Shelf) (*data.Shelf, error) {
 	query := `
-		INSERT INTO shelves (id, name, user_id, is_default, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO shelves (id, name, user_id, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5)
 		RETURNING created_at, updated_at
 	`
 
@@ -36,7 +36,6 @@ func (db *Client) CreateShelf(ctx context.Context, shelf *data.Shelf) (*data.She
 		shelf.ID,
 		shelf.Name,
 		shelf.UserID,
-		shelf.IsDefault,
 		shelf.CreatedAt,
 		shelf.UpdatedAt,
 	).Scan(&shelf.CreatedAt, &shelf.UpdatedAt)
@@ -54,30 +53,15 @@ func (db *Client) CreateShelf(ctx context.Context, shelf *data.Shelf) (*data.She
 }
 
 func (db *Client) UpdateShelf(ctx context.Context, shelf *data.Shelf) (*data.Shelf, error) {
-	// First check if this is a default shelf
-	checkQuery := `SELECT is_default FROM shelves WHERE id = $1 AND user_id = $2`
-	var isDefault bool
-	err := db.DB.QueryRow(ctx, checkQuery, shelf.ID, shelf.UserID).Scan(&isDefault)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, ErrShelfNotFound
-		}
-		return nil, fmt.Errorf("UpdateShelf check: %w", err)
-	}
-
-	if isDefault {
-		return nil, ErrCannotUpdateDefaultShelf
-	}
-
 	query := `
 		UPDATE shelves
 		SET name = $2, updated_at = $3
 		WHERE id = $1 AND user_id = $4
-		RETURNING id, name, user_id, is_default, created_at, updated_at
+		RETURNING id, name, user_id, created_at, updated_at
 	`
 
 	var updatedShelf data.Shelf
-	err = db.DB.QueryRow(
+	err := db.DB.QueryRow(
 		ctx,
 		query,
 		shelf.ID,
@@ -88,7 +72,6 @@ func (db *Client) UpdateShelf(ctx context.Context, shelf *data.Shelf) (*data.She
 		&updatedShelf.ID,
 		&updatedShelf.Name,
 		&updatedShelf.UserID,
-		&updatedShelf.IsDefault,
 		&updatedShelf.CreatedAt,
 		&updatedShelf.UpdatedAt,
 	)
@@ -109,21 +92,6 @@ func (db *Client) UpdateShelf(ctx context.Context, shelf *data.Shelf) (*data.She
 }
 
 func (db *Client) DeleteShelf(ctx context.Context, userID, id string) error {
-	// First check if this is a default shelf
-	checkQuery := `SELECT is_default FROM shelves WHERE id = $1 AND user_id = $2`
-	var isDefault bool
-	err := db.DB.QueryRow(ctx, checkQuery, id, userID).Scan(&isDefault)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return ErrShelfNotFound
-		}
-		return fmt.Errorf("DeleteShelf check: %w", err)
-	}
-
-	if isDefault {
-		return ErrCannotDeleteDefaultShelf
-	}
-
 	query := `DELETE FROM shelves WHERE id = $1 AND user_id = $2`
 	result, err := db.DB.Exec(ctx, query, id, userID)
 	if err != nil {
@@ -137,10 +105,10 @@ func (db *Client) DeleteShelf(ctx context.Context, userID, id string) error {
 
 func (db *Client) GetUserShelves(ctx context.Context, userID string) ([]*data.Shelf, error) {
 	query := `
-		SELECT id, name, user_id, is_default, created_at, updated_at
+		SELECT id, name, user_id, created_at, updated_at
 		FROM shelves
 		WHERE user_id = $1
-		ORDER BY is_default DESC, created_at ASC
+		ORDER BY created_at ASC
 	`
 
 	rows, err := db.DB.Query(ctx, query, userID)
@@ -152,7 +120,7 @@ func (db *Client) GetUserShelves(ctx context.Context, userID string) ([]*data.Sh
 	var shelves []*data.Shelf
 	for rows.Next() {
 		var s data.Shelf
-		if err := rows.Scan(&s.ID, &s.Name, &s.UserID, &s.IsDefault, &s.CreatedAt, &s.UpdatedAt); err != nil {
+		if err := rows.Scan(&s.ID, &s.Name, &s.UserID, &s.CreatedAt, &s.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("GetUserShelves scan: %w", err)
 		}
 		shelves = append(shelves, &s)
@@ -168,13 +136,13 @@ func (db *Client) GetShelfBooks(ctx context.Context, userID, shelfID string) ([]
 			FROM shelf_books
 			WHERE shelf_id = $1 AND user_id = $2
 		)
-		SELECT lb.user_id, lb.book_id, lb.title, lb.author_name, lb.book_image, lb.rating, lb.source, lb.added_at, lb.updated_at,
+		SELECT lb.user_id, lb.book_id, lb.title, lb.author_name, lb.book_image, lb.rating, lb.source, lb.reading_status, lb.added_at, lb.updated_at,
 			   COALESCE(array_agg(sb.shelf_id) FILTER (WHERE sb.shelf_id IS NOT NULL), '{}') as shelf_ids
 		FROM library_books lb
 		INNER JOIN shelf_book_ids sbi ON lb.book_id = sbi.book_id
 		LEFT JOIN shelf_books sb ON lb.book_id = sb.book_id AND lb.user_id = sb.user_id
 		WHERE lb.user_id = $2
-		GROUP BY lb.user_id, lb.book_id, lb.title, lb.author_name, lb.book_image, lb.rating, lb.source, lb.added_at, lb.updated_at
+		GROUP BY lb.user_id, lb.book_id, lb.title, lb.author_name, lb.book_image, lb.rating, lb.source, lb.reading_status, lb.added_at, lb.updated_at
 		ORDER BY lb.added_at DESC
 	`
 
@@ -201,14 +169,15 @@ func (db *Client) UpdateLibraryBook(ctx context.Context, book *data.LibraryBook)
 
 	// Upsert book
 	query := `
-		INSERT INTO library_books (user_id, book_id, title, author_name, book_image, rating, source, added_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		INSERT INTO library_books (user_id, book_id, title, author_name, book_image, rating, source, reading_status, added_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 		ON CONFLICT (user_id, book_id) DO UPDATE
 		SET title = EXCLUDED.title,
 			author_name = EXCLUDED.author_name,
 			book_image = EXCLUDED.book_image,
 			rating = EXCLUDED.rating,
 			source = EXCLUDED.source,
+			reading_status = EXCLUDED.reading_status,
 			updated_at = EXCLUDED.updated_at
 	`
 	_, err = tx.Exec(
@@ -221,6 +190,7 @@ func (db *Client) UpdateLibraryBook(ctx context.Context, book *data.LibraryBook)
 		book.BookImage,
 		book.Rating,
 		book.Source,
+		book.ReadingStatus,
 		book.AddedAt,
 		book.UpdatedAt,
 	)
@@ -266,7 +236,7 @@ func (db *Client) RemoveLibraryBook(ctx context.Context, userID, bookID string) 
 
 func (db *Client) GetUserLibrary(ctx context.Context, userID string) ([]*data.LibraryBook, error) {
 	query := `
-		SELECT lb.user_id, lb.book_id, lb.title, lb.author_name, lb.book_image, lb.rating, lb.source, lb.added_at, lb.updated_at,
+		SELECT lb.user_id, lb.book_id, lb.title, lb.author_name, lb.book_image, lb.rating, lb.source, lb.reading_status, lb.added_at, lb.updated_at,
 			   COALESCE(array_agg(sb.shelf_id) FILTER (WHERE sb.shelf_id IS NOT NULL), '{}') as shelf_ids
 		FROM library_books lb
 		LEFT JOIN shelf_books sb ON lb.book_id = sb.book_id AND lb.user_id = sb.user_id
@@ -337,6 +307,7 @@ func (db *Client) queryLibraryBooks(ctx context.Context, query string, args ...a
 			&b.BookImage,
 			&b.Rating,
 			&b.Source,
+			&b.ReadingStatus,
 			&b.AddedAt,
 			&b.UpdatedAt,
 			&b.ShelfIDs,
@@ -349,12 +320,19 @@ func (db *Client) queryLibraryBooks(ctx context.Context, query string, args ...a
 }
 
 func registerLibrary(ctx context.Context, db *pgx.Conn) error {
+	// Migrations
+	if _, err := db.Exec(ctx, "ALTER TABLE shelves DROP COLUMN IF EXISTS is_default;"); err != nil {
+		return fmt.Errorf("failed to drop is_default from shelves: %w", err)
+	}
+	if _, err := db.Exec(ctx, "ALTER TABLE library_books ADD COLUMN IF NOT EXISTS reading_status INTEGER NOT NULL DEFAULT 1;"); err != nil {
+		return fmt.Errorf("failed to add reading_status to library_books: %w", err)
+	}
+
 	createShelvesTable := `
 	CREATE TABLE IF NOT EXISTS shelves (
 		id UUID PRIMARY KEY,
 		name TEXT NOT NULL,
 		user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-		is_default BOOLEAN NOT NULL DEFAULT FALSE,
 		created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 		updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 		UNIQUE(user_id, name)
@@ -373,6 +351,7 @@ func registerLibrary(ctx context.Context, db *pgx.Conn) error {
 		book_image TEXT,
 		rating INTEGER,
 		source INTEGER,
+		reading_status INTEGER NOT NULL DEFAULT 1,
 		added_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 		updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 		PRIMARY KEY (user_id, book_id)

@@ -259,21 +259,6 @@ func TestServer_UpdateShelf(t *testing.T) {
 			wantErr:  true,
 		},
 		{
-			name: "cannot update default shelf",
-			ctx:  ctx,
-			request: &betterreads.UpdateShelfRequest{
-				ShelfId: testShelfID,
-				Name:    "Science Fiction",
-			},
-			setupMock: func(m *mocks.MockAPI) {
-				m.EXPECT().
-					UpdateShelf(gomock.Any(), gomock.Any()).
-					Return(nil, postgres.ErrCannotUpdateDefaultShelf)
-			},
-			wantCode: codes.PermissionDenied,
-			wantErr:  true,
-		},
-		{
 			name: "database error",
 			ctx:  ctx,
 			request: &betterreads.UpdateShelfRequest{
@@ -384,20 +369,6 @@ func TestServer_DeleteShelf(t *testing.T) {
 					Return(postgres.ErrShelfNotFound)
 			},
 			wantCode: codes.NotFound,
-			wantErr:  true,
-		},
-		{
-			name: "cannot delete default shelf",
-			ctx:  ctx,
-			request: &betterreads.DeleteShelfRequest{
-				ShelfId: testShelfID,
-			},
-			setupMock: func(m *mocks.MockAPI) {
-				m.EXPECT().
-					DeleteShelf(gomock.Any(), testUserID, testShelfID).
-					Return(postgres.ErrCannotDeleteDefaultShelf)
-			},
-			wantCode: codes.PermissionDenied,
 			wantErr:  true,
 		},
 		{

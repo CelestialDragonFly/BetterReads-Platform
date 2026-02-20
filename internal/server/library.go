@@ -64,18 +64,27 @@ func (s *Server) UpdateLibraryBook(ctx context.Context, req *betterreads.UpdateL
 		return nil, status.Error(codes.InvalidArgument, "invalid book source")
 	}
 
+	// Validate reading status enum
+	if req.ReadingStatus == betterreads.ReadingStatus_READING_STATUS_UNSPECIFIED {
+		return nil, status.Error(codes.InvalidArgument, "reading status must be specified")
+	}
+	if req.ReadingStatus < 0 || req.ReadingStatus > 4 {
+		return nil, status.Error(codes.InvalidArgument, "invalid reading status")
+	}
+
 	now := time.Now()
 	book := &data.LibraryBook{
-		UserID:     userID,
-		BookID:     req.BookId,
-		Title:      req.Title,
-		AuthorName: req.AuthorName,
-		BookImage:  req.BookImage,
-		Rating:     int32(req.Rating),
-		Source:     int32(req.Source),
-		ShelfIDs:   req.ShelfIds,
-		AddedAt:    now, // Used only on INSERT, preserved on UPDATE (see DB upsert query)
-		UpdatedAt:  now, // Always updated on both INSERT and UPDATE
+		UserID:        userID,
+		BookID:        req.BookId,
+		Title:         req.Title,
+		AuthorName:    req.AuthorName,
+		BookImage:     req.BookImage,
+		Rating:        int32(req.Rating),
+		Source:        int32(req.Source),
+		ReadingStatus: int32(req.ReadingStatus),
+		ShelfIDs:      req.ShelfIds,
+		AddedAt:       now, // Used only on INSERT, preserved on UPDATE (see DB upsert query)
+		UpdatedAt:     now, // Always updated on both INSERT and UPDATE
 	}
 
 	if err := s.DB.UpdateLibraryBook(ctx, book); err != nil {
@@ -138,15 +147,16 @@ func (s *Server) GetUserLibrary(ctx context.Context, req *betterreads.GetUserLib
 
 	for _, b := range books {
 		pbBook := &betterreads.LibraryBook{
-			AuthorName: b.AuthorName,
-			BookId:     b.BookID,
-			BookImage:  b.BookImage,
-			Rating:     betterreads.BookRating(b.Rating),
-			ShelfIds:   b.ShelfIDs,
-			Source:     betterreads.BookSource(b.Source),
-			Title:      b.Title,
-			AddedAt:    timestamppb.New(b.AddedAt),
-			UpdatedAt:  timestamppb.New(b.UpdatedAt),
+			AuthorName:    b.AuthorName,
+			BookId:        b.BookID,
+			BookImage:     b.BookImage,
+			Rating:        betterreads.BookRating(b.Rating),
+			ShelfIds:      b.ShelfIDs,
+			Source:        betterreads.BookSource(b.Source),
+			ReadingStatus: betterreads.ReadingStatus(b.ReadingStatus),
+			Title:         b.Title,
+			AddedAt:       timestamppb.New(b.AddedAt),
+			UpdatedAt:     timestamppb.New(b.UpdatedAt),
 		}
 
 		if len(b.ShelfIDs) == 0 {
