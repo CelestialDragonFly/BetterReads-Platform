@@ -17,7 +17,6 @@ var (
 	ErrUserNameExists          = errors.New("ProfileCreate: username already exists")
 	ErrEmailExists             = errors.New("ProfileCreate: email already exists")
 	ErrUnknownUniqueConstraint = errors.New("ProfileCreate: unique constraint violation")
-	ErrUnknownInsertUser       = errors.New("ProfileCreate: a unique user field already exists")
 	ErrInsertUser              = errors.New("ProfileCreate: failed to insert user")
 	ErrUserNotFound            = errors.New("ProfileGet: user not found")
 	ErrGetUser                 = errors.New("ProfileGet: failed to retrieve user")
