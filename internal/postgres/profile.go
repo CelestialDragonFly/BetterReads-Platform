@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/celestialdragonfly/betterreads/internal/data"
+	"github.com/celestialdragonfly/betterreads/internal/logger"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 )
@@ -16,7 +17,6 @@ var (
 	ErrUserNameExists          = errors.New("ProfileCreate: username already exists")
 	ErrEmailExists             = errors.New("ProfileCreate: email already exists")
 	ErrUnknownUniqueConstraint = errors.New("ProfileCreate: unique constraint violation")
-	ErrUnknownInsertUser       = errors.New("ProfileCreate: a unique user field already exists")
 	ErrInsertUser              = errors.New("ProfileCreate: failed to insert user")
 	ErrUserNotFound            = errors.New("ProfileGet: user not found")
 	ErrGetUser                 = errors.New("ProfileGet: failed to retrieve user")
@@ -25,6 +25,17 @@ var (
 )
 
 func (db *Client) ProfileCreate(ctx context.Context, profile *data.User) (*data.User, error) {
+	// Start a transaction to ensure user and default shelves are created atomically
+	tx, err := db.DB.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("ProfileCreate: failed to start transaction: %w", err)
+	}
+	defer func() {
+		if rollbackErr := tx.Rollback(ctx); rollbackErr != nil && !errors.Is(rollbackErr, pgx.ErrTxClosed) {
+			logger.Error("ProfileCreate: failed to rollback transaction: %w", rollbackErr)
+		}
+	}()
+
 	query := `
 		INSERT INTO users (id, username, first_name, last_name, email, profile_photo)
 		VALUES ($1, $2, $3, $4, $5, $6)
@@ -33,7 +44,7 @@ func (db *Client) ProfileCreate(ctx context.Context, profile *data.User) (*data.
 
 	var createdAt time.Time
 
-	err := db.DB.QueryRow(
+	err = tx.QueryRow(
 		ctx,
 		query,
 		profile.ID,
@@ -62,6 +73,11 @@ func (db *Client) ProfileCreate(ctx context.Context, profile *data.User) (*data.
 	}
 
 	profile.CreatedAt = createdAt
+
+	// Commit the transaction
+	if err = tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("ProfileCreate: failed to commit transaction: %w", err)
+	}
 
 	return profile, nil
 }

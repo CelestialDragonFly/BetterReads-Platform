@@ -42,7 +42,7 @@ service BetterReadsService {
     };
   }
 
-  // Remove book from library
+  // Remove book from library (removes from all shelves)
   rpc RemoveLibraryBook(RemoveLibraryBookRequest) returns (RemoveLibraryBookResponse) {
     option (google.api.http) = {
       delete: "/api/v1/library"
@@ -57,10 +57,61 @@ service BetterReadsService {
     };
   }
 
-  // Get user's library
+  // Get user's library (all books grouped by shelf)
   rpc GetUserLibrary(GetUserLibraryRequest) returns (GetUserLibraryResponse) {
     option (google.api.http) = {
       get: "/api/v1/library/{user_id}"
+    };
+  }
+
+  // Create a new shelf
+  rpc CreateShelf(CreateShelfRequest) returns (CreateShelfResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/shelves"
+      body: "*"
+    };
+  }
+
+  // Update shelf (rename or reorder)
+  rpc UpdateShelf(UpdateShelfRequest) returns (UpdateShelfResponse) {
+    option (google.api.http) = {
+      patch: "/api/v1/shelves/{shelf_id}"
+      body: "*"
+    };
+  }
+
+  // Delete shelf and remove all books from library that are only on this shelf
+  rpc DeleteShelf(DeleteShelfRequest) returns (DeleteShelfResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/shelves/{shelf_id}"
+    };
+  }
+
+  // Get all shelves for a user
+  rpc GetUserShelves(GetUserShelvesRequest) returns (GetUserShelvesResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/shelves/{user_id}"
+    };
+  }
+
+  // Get books for a specific shelf
+  rpc GetShelfBooks(GetShelfBooksRequest) returns (GetShelfBooksResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/shelves/{shelf_id}/books"
+    };
+  }
+
+  // Add book to one or more shelves
+  rpc AddBookToShelf(AddBookToShelfRequest) returns (AddBookToShelfResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/library/books/{book_id}/shelves/{shelf_id}"
+    };
+  }
+
+  // Remove book from specific shelves (book remains in library if on other shelves)
+  rpc RemoveBookFromShelf(RemoveBookFromShelfRequest) returns (RemoveBookFromShelfResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/library/books/{book_id}/shelves/{shelf_id}"
     };
   }
 
@@ -184,6 +235,14 @@ enum BookSource {
   BOOK_SOURCE_MANUAL = 3;
 }
 
+enum ReadingStatus {
+  READING_STATUS_UNSPECIFIED = 0;
+  READING_STATUS_READ = 1;
+  READING_STATUS_WANT_TO_READ = 2;
+  READING_STATUS_READING = 3;
+  READING_STATUS_DID_NOT_FINISH = 4;
+}
+
 enum BookRating {
   BOOK_RATING_UNSPECIFIED = 0;
   BOOK_RATING_ONE_STAR = 1;
@@ -193,29 +252,14 @@ enum BookRating {
   BOOK_RATING_FIVE_STAR = 5;
 }
 
-enum BookShelf {
-  BOOK_SHELF_UNSPECIFIED = 0;
-  BOOK_SHELF_WANT_TO_READ = 1;
-  BOOK_SHELF_CURRENTLY_READING = 2;
-  BOOK_SHELF_READ = 3;
-}
-
-enum LibraryFilter {
-  LIBRARY_FILTER_UNSPECIFIED = 0;
-  LIBRARY_FILTER_ALL = 1;
-  LIBRARY_FILTER_WANT_TO_READ = 2;
-  LIBRARY_FILTER_CURRENTLY_READING = 3;
-  LIBRARY_FILTER_READ = 4;
-}
-
-enum LibrarySort {
-  LIBRARY_SORT_UNSPECIFIED = 0;
-  LIBRARY_SORT_TITLE_ASC = 1;
-  LIBRARY_SORT_TITLE_DESC = 2;
-  LIBRARY_SORT_AUTHOR_ASC = 3;
-  LIBRARY_SORT_AUTHOR_DESC = 4;
-  LIBRARY_SORT_DATE_ADDED_ASC = 5;
-  LIBRARY_SORT_DATE_ADDED_DESC = 6;
+enum ShelfSortOrder {
+  SHELF_SORT_ORDER_UNSPECIFIED = 0;
+  SHELF_SORT_ORDER_TITLE_ASC = 1;
+  SHELF_SORT_ORDER_TITLE_DESC = 2;
+  SHELF_SORT_ORDER_AUTHOR_ASC = 3;
+  SHELF_SORT_ORDER_AUTHOR_DESC = 4;
+  SHELF_SORT_ORDER_DATE_ADDED_ASC = 5;
+  SHELF_SORT_ORDER_DATE_ADDED_DESC = 6;
 }
 
 // Common message types
@@ -267,16 +311,30 @@ message Comment {
   google.protobuf.Timestamp created_at = 5;
 }
 
+message Shelf {
+  string id = 1;
+  string name = 2;
+  string user_id = 3;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
 message LibraryBook {
   string author_name = 1;
   string book_id = 2;
   string book_image = 3;
   BookRating rating = 4;
-  BookShelf shelf = 5;
+  repeated string shelf_ids = 5; // Books can be on multiple shelves
   BookSource source = 6;
   string title = 7;
   google.protobuf.Timestamp added_at = 8;
   google.protobuf.Timestamp updated_at = 9;
+  ReadingStatus reading_status = 10;
+}
+
+message ShelfWithBooks {
+  Shelf shelf = 1;
+  repeated LibraryBook books = 2;
 }
 
 // RPC Request/Response pairs (in order of service definition)
@@ -327,26 +385,83 @@ message UpdateLibraryBookRequest {
   string author_name = 1;
   string book_id = 2;
   string book_image = 3;
-  BookShelf shelf = 4;
+  repeated string shelf_ids = 4; // Optional: Books can exist without shelves
   BookSource source = 5;
   string title = 6;
   BookRating rating = 7;
+  ReadingStatus reading_status = 8;
 }
 
 message UpdateLibraryBookResponse {}
 
 message GetUserLibraryRequest {
   string user_id = 1;
-  LibraryFilter filter = 2;
-  int32 page = 3;
-  int32 limit = 4;
-  LibrarySort sort = 5;
+  int32 page = 2;
+  int32 limit = 3;
 }
 
 message GetUserLibraryResponse {
-  repeated LibraryBook library = 1;
+  repeated ShelfWithBooks shelves = 1;
+  repeated LibraryBook unshelved_books = 2; // Books not on any shelf
+  PaginationMetadata pagination = 3;
+}
+
+message CreateShelfRequest {
+  string name = 1;
+}
+
+message CreateShelfResponse {
+  Shelf shelf = 1;
+}
+
+message UpdateShelfRequest {
+  string shelf_id = 1;
+  string name = 2; // Optional: if provided, renames the shelf
+}
+
+message UpdateShelfResponse {
+  Shelf shelf = 1;
+}
+
+message DeleteShelfRequest {
+  string shelf_id = 1;
+}
+
+message DeleteShelfResponse {}
+
+message GetUserShelvesRequest {
+  string user_id = 1;
+}
+
+message GetUserShelvesResponse {
+  repeated Shelf shelves = 1;
+}
+
+message GetShelfBooksRequest {
+  string shelf_id = 1;
+  int32 page = 2;
+  int32 limit = 3;
+  ShelfSortOrder sort = 4;
+}
+
+message GetShelfBooksResponse {
+  repeated LibraryBook books = 1;
   PaginationMetadata pagination = 2;
 }
+
+message AddBookToShelfRequest {
+  string book_id = 1;
+   string shelf_id = 2;
+}
+
+message AddBookToShelfResponse {}
+
+message RemoveBookFromShelfRequest {
+  string book_id = 1;
+  string shelf_id = 2;
+}
+
+message RemoveBookFromShelfResponse {}
 
 message CreatePostRequest {
   BookDetails book = 1;

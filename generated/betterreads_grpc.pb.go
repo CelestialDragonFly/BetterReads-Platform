@@ -25,6 +25,13 @@ const (
 	BetterReadsService_RemoveLibraryBook_FullMethodName     = "/betterreads.BetterReadsService/RemoveLibraryBook"
 	BetterReadsService_UpdateLibraryBook_FullMethodName     = "/betterreads.BetterReadsService/UpdateLibraryBook"
 	BetterReadsService_GetUserLibrary_FullMethodName        = "/betterreads.BetterReadsService/GetUserLibrary"
+	BetterReadsService_CreateShelf_FullMethodName           = "/betterreads.BetterReadsService/CreateShelf"
+	BetterReadsService_UpdateShelf_FullMethodName           = "/betterreads.BetterReadsService/UpdateShelf"
+	BetterReadsService_DeleteShelf_FullMethodName           = "/betterreads.BetterReadsService/DeleteShelf"
+	BetterReadsService_GetUserShelves_FullMethodName        = "/betterreads.BetterReadsService/GetUserShelves"
+	BetterReadsService_GetShelfBooks_FullMethodName         = "/betterreads.BetterReadsService/GetShelfBooks"
+	BetterReadsService_AddBookToShelf_FullMethodName        = "/betterreads.BetterReadsService/AddBookToShelf"
+	BetterReadsService_RemoveBookFromShelf_FullMethodName   = "/betterreads.BetterReadsService/RemoveBookFromShelf"
 	BetterReadsService_CreatePost_FullMethodName            = "/betterreads.BetterReadsService/CreatePost"
 	BetterReadsService_DeletePost_FullMethodName            = "/betterreads.BetterReadsService/DeletePost"
 	BetterReadsService_UpdatePost_FullMethodName            = "/betterreads.BetterReadsService/UpdatePost"
@@ -52,12 +59,26 @@ type BetterReadsServiceClient interface {
 	GetPersonalizedFeed(ctx context.Context, in *GetPersonalizedFeedRequest, opts ...grpc.CallOption) (*GetPersonalizedFeedResponse, error)
 	// Get user's public posts
 	GetUserFeed(ctx context.Context, in *GetUserFeedRequest, opts ...grpc.CallOption) (*GetUserFeedResponse, error)
-	// Remove book from library
+	// Remove book from library (removes from all shelves)
 	RemoveLibraryBook(ctx context.Context, in *RemoveLibraryBookRequest, opts ...grpc.CallOption) (*RemoveLibraryBookResponse, error)
 	// Add or update book in library
 	UpdateLibraryBook(ctx context.Context, in *UpdateLibraryBookRequest, opts ...grpc.CallOption) (*UpdateLibraryBookResponse, error)
-	// Get user's library
+	// Get user's library (all books grouped by shelf)
 	GetUserLibrary(ctx context.Context, in *GetUserLibraryRequest, opts ...grpc.CallOption) (*GetUserLibraryResponse, error)
+	// Create a new shelf
+	CreateShelf(ctx context.Context, in *CreateShelfRequest, opts ...grpc.CallOption) (*CreateShelfResponse, error)
+	// Update shelf (rename or reorder)
+	UpdateShelf(ctx context.Context, in *UpdateShelfRequest, opts ...grpc.CallOption) (*UpdateShelfResponse, error)
+	// Delete shelf and remove all books from library that are only on this shelf
+	DeleteShelf(ctx context.Context, in *DeleteShelfRequest, opts ...grpc.CallOption) (*DeleteShelfResponse, error)
+	// Get all shelves for a user
+	GetUserShelves(ctx context.Context, in *GetUserShelvesRequest, opts ...grpc.CallOption) (*GetUserShelvesResponse, error)
+	// Get books for a specific shelf
+	GetShelfBooks(ctx context.Context, in *GetShelfBooksRequest, opts ...grpc.CallOption) (*GetShelfBooksResponse, error)
+	// Add book to one or more shelves
+	AddBookToShelf(ctx context.Context, in *AddBookToShelfRequest, opts ...grpc.CallOption) (*AddBookToShelfResponse, error)
+	// Remove book from specific shelves (book remains in library if on other shelves)
+	RemoveBookFromShelf(ctx context.Context, in *RemoveBookFromShelfRequest, opts ...grpc.CallOption) (*RemoveBookFromShelfResponse, error)
 	// Create a new post
 	CreatePost(ctx context.Context, in *CreatePostRequest, opts ...grpc.CallOption) (*CreatePostResponse, error)
 	// Delete a post
@@ -146,6 +167,69 @@ func (c *betterReadsServiceClient) UpdateLibraryBook(ctx context.Context, in *Up
 func (c *betterReadsServiceClient) GetUserLibrary(ctx context.Context, in *GetUserLibraryRequest, opts ...grpc.CallOption) (*GetUserLibraryResponse, error) {
 	out := new(GetUserLibraryResponse)
 	err := c.cc.Invoke(ctx, BetterReadsService_GetUserLibrary_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *betterReadsServiceClient) CreateShelf(ctx context.Context, in *CreateShelfRequest, opts ...grpc.CallOption) (*CreateShelfResponse, error) {
+	out := new(CreateShelfResponse)
+	err := c.cc.Invoke(ctx, BetterReadsService_CreateShelf_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *betterReadsServiceClient) UpdateShelf(ctx context.Context, in *UpdateShelfRequest, opts ...grpc.CallOption) (*UpdateShelfResponse, error) {
+	out := new(UpdateShelfResponse)
+	err := c.cc.Invoke(ctx, BetterReadsService_UpdateShelf_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *betterReadsServiceClient) DeleteShelf(ctx context.Context, in *DeleteShelfRequest, opts ...grpc.CallOption) (*DeleteShelfResponse, error) {
+	out := new(DeleteShelfResponse)
+	err := c.cc.Invoke(ctx, BetterReadsService_DeleteShelf_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *betterReadsServiceClient) GetUserShelves(ctx context.Context, in *GetUserShelvesRequest, opts ...grpc.CallOption) (*GetUserShelvesResponse, error) {
+	out := new(GetUserShelvesResponse)
+	err := c.cc.Invoke(ctx, BetterReadsService_GetUserShelves_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *betterReadsServiceClient) GetShelfBooks(ctx context.Context, in *GetShelfBooksRequest, opts ...grpc.CallOption) (*GetShelfBooksResponse, error) {
+	out := new(GetShelfBooksResponse)
+	err := c.cc.Invoke(ctx, BetterReadsService_GetShelfBooks_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *betterReadsServiceClient) AddBookToShelf(ctx context.Context, in *AddBookToShelfRequest, opts ...grpc.CallOption) (*AddBookToShelfResponse, error) {
+	out := new(AddBookToShelfResponse)
+	err := c.cc.Invoke(ctx, BetterReadsService_AddBookToShelf_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *betterReadsServiceClient) RemoveBookFromShelf(ctx context.Context, in *RemoveBookFromShelfRequest, opts ...grpc.CallOption) (*RemoveBookFromShelfResponse, error) {
+	out := new(RemoveBookFromShelfResponse)
+	err := c.cc.Invoke(ctx, BetterReadsService_RemoveBookFromShelf_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -297,12 +381,26 @@ type BetterReadsServiceServer interface {
 	GetPersonalizedFeed(context.Context, *GetPersonalizedFeedRequest) (*GetPersonalizedFeedResponse, error)
 	// Get user's public posts
 	GetUserFeed(context.Context, *GetUserFeedRequest) (*GetUserFeedResponse, error)
-	// Remove book from library
+	// Remove book from library (removes from all shelves)
 	RemoveLibraryBook(context.Context, *RemoveLibraryBookRequest) (*RemoveLibraryBookResponse, error)
 	// Add or update book in library
 	UpdateLibraryBook(context.Context, *UpdateLibraryBookRequest) (*UpdateLibraryBookResponse, error)
-	// Get user's library
+	// Get user's library (all books grouped by shelf)
 	GetUserLibrary(context.Context, *GetUserLibraryRequest) (*GetUserLibraryResponse, error)
+	// Create a new shelf
+	CreateShelf(context.Context, *CreateShelfRequest) (*CreateShelfResponse, error)
+	// Update shelf (rename or reorder)
+	UpdateShelf(context.Context, *UpdateShelfRequest) (*UpdateShelfResponse, error)
+	// Delete shelf and remove all books from library that are only on this shelf
+	DeleteShelf(context.Context, *DeleteShelfRequest) (*DeleteShelfResponse, error)
+	// Get all shelves for a user
+	GetUserShelves(context.Context, *GetUserShelvesRequest) (*GetUserShelvesResponse, error)
+	// Get books for a specific shelf
+	GetShelfBooks(context.Context, *GetShelfBooksRequest) (*GetShelfBooksResponse, error)
+	// Add book to one or more shelves
+	AddBookToShelf(context.Context, *AddBookToShelfRequest) (*AddBookToShelfResponse, error)
+	// Remove book from specific shelves (book remains in library if on other shelves)
+	RemoveBookFromShelf(context.Context, *RemoveBookFromShelfRequest) (*RemoveBookFromShelfResponse, error)
 	// Create a new post
 	CreatePost(context.Context, *CreatePostRequest) (*CreatePostResponse, error)
 	// Delete a post
@@ -357,6 +455,27 @@ func (UnimplementedBetterReadsServiceServer) UpdateLibraryBook(context.Context, 
 }
 func (UnimplementedBetterReadsServiceServer) GetUserLibrary(context.Context, *GetUserLibraryRequest) (*GetUserLibraryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserLibrary not implemented")
+}
+func (UnimplementedBetterReadsServiceServer) CreateShelf(context.Context, *CreateShelfRequest) (*CreateShelfResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateShelf not implemented")
+}
+func (UnimplementedBetterReadsServiceServer) UpdateShelf(context.Context, *UpdateShelfRequest) (*UpdateShelfResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateShelf not implemented")
+}
+func (UnimplementedBetterReadsServiceServer) DeleteShelf(context.Context, *DeleteShelfRequest) (*DeleteShelfResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteShelf not implemented")
+}
+func (UnimplementedBetterReadsServiceServer) GetUserShelves(context.Context, *GetUserShelvesRequest) (*GetUserShelvesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserShelves not implemented")
+}
+func (UnimplementedBetterReadsServiceServer) GetShelfBooks(context.Context, *GetShelfBooksRequest) (*GetShelfBooksResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetShelfBooks not implemented")
+}
+func (UnimplementedBetterReadsServiceServer) AddBookToShelf(context.Context, *AddBookToShelfRequest) (*AddBookToShelfResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddBookToShelf not implemented")
+}
+func (UnimplementedBetterReadsServiceServer) RemoveBookFromShelf(context.Context, *RemoveBookFromShelfRequest) (*RemoveBookFromShelfResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveBookFromShelf not implemented")
 }
 func (UnimplementedBetterReadsServiceServer) CreatePost(context.Context, *CreatePostRequest) (*CreatePostResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePost not implemented")
@@ -520,6 +639,132 @@ func _BetterReadsService_GetUserLibrary_Handler(srv interface{}, ctx context.Con
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BetterReadsServiceServer).GetUserLibrary(ctx, req.(*GetUserLibraryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BetterReadsService_CreateShelf_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateShelfRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BetterReadsServiceServer).CreateShelf(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BetterReadsService_CreateShelf_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BetterReadsServiceServer).CreateShelf(ctx, req.(*CreateShelfRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BetterReadsService_UpdateShelf_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateShelfRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BetterReadsServiceServer).UpdateShelf(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BetterReadsService_UpdateShelf_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BetterReadsServiceServer).UpdateShelf(ctx, req.(*UpdateShelfRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BetterReadsService_DeleteShelf_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteShelfRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BetterReadsServiceServer).DeleteShelf(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BetterReadsService_DeleteShelf_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BetterReadsServiceServer).DeleteShelf(ctx, req.(*DeleteShelfRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BetterReadsService_GetUserShelves_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserShelvesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BetterReadsServiceServer).GetUserShelves(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BetterReadsService_GetUserShelves_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BetterReadsServiceServer).GetUserShelves(ctx, req.(*GetUserShelvesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BetterReadsService_GetShelfBooks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetShelfBooksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BetterReadsServiceServer).GetShelfBooks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BetterReadsService_GetShelfBooks_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BetterReadsServiceServer).GetShelfBooks(ctx, req.(*GetShelfBooksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BetterReadsService_AddBookToShelf_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddBookToShelfRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BetterReadsServiceServer).AddBookToShelf(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BetterReadsService_AddBookToShelf_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BetterReadsServiceServer).AddBookToShelf(ctx, req.(*AddBookToShelfRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BetterReadsService_RemoveBookFromShelf_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveBookFromShelfRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BetterReadsServiceServer).RemoveBookFromShelf(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BetterReadsService_RemoveBookFromShelf_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BetterReadsServiceServer).RemoveBookFromShelf(ctx, req.(*RemoveBookFromShelfRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -824,6 +1069,34 @@ var BetterReadsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUserLibrary",
 			Handler:    _BetterReadsService_GetUserLibrary_Handler,
+		},
+		{
+			MethodName: "CreateShelf",
+			Handler:    _BetterReadsService_CreateShelf_Handler,
+		},
+		{
+			MethodName: "UpdateShelf",
+			Handler:    _BetterReadsService_UpdateShelf_Handler,
+		},
+		{
+			MethodName: "DeleteShelf",
+			Handler:    _BetterReadsService_DeleteShelf_Handler,
+		},
+		{
+			MethodName: "GetUserShelves",
+			Handler:    _BetterReadsService_GetUserShelves_Handler,
+		},
+		{
+			MethodName: "GetShelfBooks",
+			Handler:    _BetterReadsService_GetShelfBooks_Handler,
+		},
+		{
+			MethodName: "AddBookToShelf",
+			Handler:    _BetterReadsService_AddBookToShelf_Handler,
+		},
+		{
+			MethodName: "RemoveBookFromShelf",
+			Handler:    _BetterReadsService_RemoveBookFromShelf_Handler,
 		},
 		{
 			MethodName: "CreatePost",

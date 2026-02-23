@@ -25,4 +25,10 @@ function generate_grpc() {
 		betterreads.proto
 }
 
+function generate_openapi_from_swagger() {
+	docker run --rm -v "${PWD}":/usr/src/app mermade/swagger2openapi swagger2openapi --yaml --outfile /usr/src/app/betterreads.openapi.yaml /usr/src/app/betterreads.swagger.json
+	sudo chown "$USER":"$USER" betterreads.openapi.yaml
+}
+
 generate_grpc
+generate_openapi_from_swagger

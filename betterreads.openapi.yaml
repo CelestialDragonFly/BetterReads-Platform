@@ -1,0 +1,1294 @@
+openapi: 3.0.0
+info:
+  title: BetterReads API
+  description: BetterReads API
+  version: 1.0.0
+tags:
+  - name: BetterReadsService
+paths:
+  /api/v1/books:
+    get:
+      summary: Search for books
+      operationId: BetterReadsService_SearchBooks
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsSearchBooksResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      parameters:
+        - name: query
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: title
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: author
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: subject
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+      tags:
+        - BetterReadsService
+  /api/v1/feed:
+    get:
+      summary: Get personalized feed
+      operationId: BetterReadsService_GetPersonalizedFeed
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsGetPersonalizedFeedResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: since
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+      tags:
+        - BetterReadsService
+  "/api/v1/feed/{userId}":
+    get:
+      summary: Get user's public posts
+      operationId: BetterReadsService_GetUserFeed
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsGetUserFeedResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+      tags:
+        - BetterReadsService
+  /api/v1/library:
+    delete:
+      summary: Remove book from library (removes from all shelves)
+      operationId: BetterReadsService_RemoveLibraryBook
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsRemoveLibraryBookResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      parameters:
+        - name: bookId
+          in: query
+          required: false
+          schema:
+            type: string
+      tags:
+        - BetterReadsService
+    put:
+      summary: Add or update book in library
+      operationId: BetterReadsService_UpdateLibraryBook
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsUpdateLibraryBookResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/betterreadsUpdateLibraryBookRequest"
+        required: true
+      tags:
+        - BetterReadsService
+  "/api/v1/library/books/{bookId}/shelves/{shelfId}":
+    delete:
+      summary: Remove book from specific shelves (book remains in library if on other
+        shelves)
+      operationId: BetterReadsService_RemoveBookFromShelf
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsRemoveBookFromShelfResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      parameters:
+        - name: bookId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: shelfId
+          in: path
+          required: true
+          schema:
+            type: string
+      tags:
+        - BetterReadsService
+    post:
+      summary: Add book to one or more shelves
+      operationId: BetterReadsService_AddBookToShelf
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsAddBookToShelfResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      parameters:
+        - name: bookId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: shelfId
+          in: path
+          required: true
+          schema:
+            type: string
+      tags:
+        - BetterReadsService
+  "/api/v1/library/{userId}":
+    get:
+      summary: Get user's library (all books grouped by shelf)
+      operationId: BetterReadsService_GetUserLibrary
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsGetUserLibraryResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+      tags:
+        - BetterReadsService
+  /api/v1/posts:
+    post:
+      summary: Create a new post
+      operationId: BetterReadsService_CreatePost
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsCreatePostResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/betterreadsCreatePostRequest"
+        required: true
+      tags:
+        - BetterReadsService
+  "/api/v1/posts/{postId}":
+    delete:
+      summary: Delete a post
+      operationId: BetterReadsService_DeletePost
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsDeletePostResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+      tags:
+        - BetterReadsService
+    put:
+      summary: Update a post
+      operationId: BetterReadsService_UpdatePost
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsUpdatePostResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      parameters:
+        - name: postId
+          description: Path param
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BetterReadsServiceUpdatePostBody"
+        required: true
+      tags:
+        - BetterReadsService
+  "/api/v1/posts/{postId}/comments":
+    get:
+      summary: Retrieve comments for a post
+      operationId: BetterReadsService_GetCommentsForPost
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsGetCommentsForPostResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+      tags:
+        - BetterReadsService
+    post:
+      summary: Add a comment to a post
+      operationId: BetterReadsService_AddComment
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsAddCommentResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BetterReadsServiceAddCommentBody"
+        required: true
+      tags:
+        - BetterReadsService
+  "/api/v1/posts/{postId}/comments/{commentId}":
+    delete:
+      summary: Delete a specific comment from a post
+      operationId: BetterReadsService_DeleteComment
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsDeleteCommentResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: string
+      tags:
+        - BetterReadsService
+  "/api/v1/posts/{postId}/like":
+    post:
+      summary: Like a post
+      operationId: BetterReadsService_LikePost
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsLikePostResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+      tags:
+        - BetterReadsService
+  "/api/v1/posts/{postId}/unlike":
+    delete:
+      summary: Unlike a post
+      operationId: BetterReadsService_UnlikePost
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsUnlikePostResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+      tags:
+        - BetterReadsService
+  /api/v1/profile:
+    get:
+      summary: Get current user profile
+      operationId: BetterReadsService_GetCurrentUserProfile
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsGetCurrentUserProfileResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      tags:
+        - BetterReadsService
+    delete:
+      summary: Delete user profile
+      operationId: BetterReadsService_DeleteUserProfile
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsDeleteUserProfileResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      tags:
+        - BetterReadsService
+    post:
+      summary: Create user profile
+      operationId: BetterReadsService_CreateUserProfile
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsCreateUserProfileResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/betterreadsCreateUserProfileRequest"
+        required: true
+      tags:
+        - BetterReadsService
+    patch:
+      summary: Update user profile
+      operationId: BetterReadsService_UpdateUserProfile
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsUpdateUserProfileResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/betterreadsUpdateUserProfileRequest"
+        required: true
+      tags:
+        - BetterReadsService
+  /api/v1/shelves:
+    post:
+      summary: Create a new shelf
+      operationId: BetterReadsService_CreateShelf
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsCreateShelfResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/betterreadsCreateShelfRequest"
+        required: true
+      tags:
+        - BetterReadsService
+  "/api/v1/shelves/{shelfId}":
+    delete:
+      summary: Delete shelf and remove all books from library that are only on this
+        shelf
+      operationId: BetterReadsService_DeleteShelf
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsDeleteShelfResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      parameters:
+        - name: shelfId
+          in: path
+          required: true
+          schema:
+            type: string
+      tags:
+        - BetterReadsService
+    patch:
+      summary: Update shelf (rename or reorder)
+      operationId: BetterReadsService_UpdateShelf
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsUpdateShelfResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      parameters:
+        - name: shelfId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BetterReadsServiceUpdateShelfBody"
+        required: true
+      tags:
+        - BetterReadsService
+  "/api/v1/shelves/{shelfId}/books":
+    get:
+      summary: Get books for a specific shelf
+      operationId: BetterReadsService_GetShelfBooks
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsGetShelfBooksResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      parameters:
+        - name: shelfId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - SHELF_SORT_ORDER_UNSPECIFIED
+              - SHELF_SORT_ORDER_TITLE_ASC
+              - SHELF_SORT_ORDER_TITLE_DESC
+              - SHELF_SORT_ORDER_AUTHOR_ASC
+              - SHELF_SORT_ORDER_AUTHOR_DESC
+              - SHELF_SORT_ORDER_DATE_ADDED_ASC
+              - SHELF_SORT_ORDER_DATE_ADDED_DESC
+            default: SHELF_SORT_ORDER_UNSPECIFIED
+      tags:
+        - BetterReadsService
+  "/api/v1/shelves/{userId}":
+    get:
+      summary: Get all shelves for a user
+      operationId: BetterReadsService_GetUserShelves
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsGetUserShelvesResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      tags:
+        - BetterReadsService
+  "/api/v1/users/{userId}":
+    get:
+      summary: Get user information
+      operationId: BetterReadsService_GetUserById
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsGetUserByIdResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      tags:
+        - BetterReadsService
+  "/api/v1/users/{userId}/follow":
+    post:
+      summary: Follow a user
+      operationId: BetterReadsService_FollowUser
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsFollowUserResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      tags:
+        - BetterReadsService
+  "/api/v1/users/{userId}/unfollow":
+    delete:
+      summary: Unfollow a user
+      operationId: BetterReadsService_UnfollowUser
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/betterreadsUnfollowUserResponse"
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      tags:
+        - BetterReadsService
+components:
+  schemas:
+    BetterReadsServiceAddCommentBody:
+      type: object
+      properties:
+        content:
+          type: string
+    BetterReadsServiceUpdatePostBody:
+      type: object
+      properties:
+        book:
+          $ref: "#/components/schemas/betterreadsBookDetails"
+        description:
+          type: string
+        summary:
+          type: string
+    BetterReadsServiceUpdateShelfBody:
+      type: object
+      properties:
+        name:
+          type: string
+          title: "Optional: if provided, renames the shelf"
+    betterreadsAddBookToShelfResponse:
+      type: object
+    betterreadsAddCommentResponse:
+      type: object
+      properties:
+        comment:
+          $ref: "#/components/schemas/betterreadsComment"
+    betterreadsBook:
+      type: object
+      properties:
+        id:
+          type: string
+        authorId:
+          type: string
+        authorName:
+          type: string
+        bookImage:
+          type: string
+        isbn:
+          type: string
+        publishedYear:
+          type: integer
+          format: int32
+        ratingAverage:
+          type: number
+          format: float
+        ratingCount:
+          type: integer
+          format: int32
+        source:
+          $ref: "#/components/schemas/betterreadsBookSource"
+        title:
+          type: string
+    betterreadsBookDetails:
+      type: object
+      properties:
+        id:
+          type: string
+        author:
+          type: string
+        title:
+          type: string
+        imageUrl:
+          type: string
+        rating:
+          $ref: "#/components/schemas/betterreadsBookRating"
+      title: Unified book details for posts - includes user's rating and review info
+    betterreadsBookRating:
+      type: string
+      enum:
+        - BOOK_RATING_UNSPECIFIED
+        - BOOK_RATING_ONE_STAR
+        - BOOK_RATING_TWO_STAR
+        - BOOK_RATING_THREE_STAR
+        - BOOK_RATING_FOUR_STAR
+        - BOOK_RATING_FIVE_STAR
+      default: BOOK_RATING_UNSPECIFIED
+    betterreadsBookSource:
+      type: string
+      enum:
+        - BOOK_SOURCE_UNSPECIFIED
+        - BOOK_SOURCE_GOOGLE_BOOKS
+        - BOOK_SOURCE_OPEN_LIBRARY
+        - BOOK_SOURCE_MANUAL
+      default: BOOK_SOURCE_UNSPECIFIED
+    betterreadsComment:
+      type: object
+      properties:
+        id:
+          type: string
+        content:
+          type: string
+        postId:
+          type: string
+        userId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    betterreadsCreatePostRequest:
+      type: object
+      properties:
+        book:
+          $ref: "#/components/schemas/betterreadsBookDetails"
+        description:
+          type: string
+        summary:
+          type: string
+    betterreadsCreatePostResponse:
+      type: object
+      properties:
+        post:
+          $ref: "#/components/schemas/betterreadsPost"
+    betterreadsCreateShelfRequest:
+      type: object
+      properties:
+        name:
+          type: string
+    betterreadsCreateShelfResponse:
+      type: object
+      properties:
+        shelf:
+          $ref: "#/components/schemas/betterreadsShelf"
+    betterreadsCreateUserProfileRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        profilePhotoUrl:
+          type: string
+          title: URL to profile photo
+        username:
+          type: string
+    betterreadsCreateUserProfileResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        profilePhotoUrl:
+          type: string
+          title: URL to profile photo
+        createdAt:
+          type: string
+          format: date-time
+    betterreadsDeleteCommentResponse:
+      type: object
+    betterreadsDeletePostResponse:
+      type: object
+    betterreadsDeleteShelfResponse:
+      type: object
+    betterreadsDeleteUserProfileResponse:
+      type: object
+    betterreadsFollowUserResponse:
+      type: object
+    betterreadsGetCommentsForPostResponse:
+      type: object
+      properties:
+        comments:
+          type: array
+          items:
+            $ref: "#/components/schemas/betterreadsComment"
+        pagination:
+          $ref: "#/components/schemas/betterreadsPaginationMetadata"
+    betterreadsGetCurrentUserProfileResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        profilePhotoUrl:
+          type: string
+          title: URL to profile photo
+        createdAt:
+          type: string
+          format: date-time
+    betterreadsGetPersonalizedFeedResponse:
+      type: object
+      properties:
+        posts:
+          type: array
+          items:
+            $ref: "#/components/schemas/betterreadsPost"
+        pagination:
+          $ref: "#/components/schemas/betterreadsPaginationMetadata"
+    betterreadsGetShelfBooksResponse:
+      type: object
+      properties:
+        books:
+          type: array
+          items:
+            $ref: "#/components/schemas/betterreadsLibraryBook"
+        pagination:
+          $ref: "#/components/schemas/betterreadsPaginationMetadata"
+    betterreadsGetUserByIdResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        profilePhotoUrl:
+          type: string
+          title: URL to profile photo
+    betterreadsGetUserFeedResponse:
+      type: object
+      properties:
+        posts:
+          type: array
+          items:
+            $ref: "#/components/schemas/betterreadsPost"
+        pagination:
+          $ref: "#/components/schemas/betterreadsPaginationMetadata"
+    betterreadsGetUserLibraryResponse:
+      type: object
+      properties:
+        shelves:
+          type: array
+          items:
+            $ref: "#/components/schemas/betterreadsShelfWithBooks"
+        unshelvedBooks:
+          type: array
+          items:
+            $ref: "#/components/schemas/betterreadsLibraryBook"
+          title: Books not on any shelf
+        pagination:
+          $ref: "#/components/schemas/betterreadsPaginationMetadata"
+    betterreadsGetUserShelvesResponse:
+      type: object
+      properties:
+        shelves:
+          type: array
+          items:
+            $ref: "#/components/schemas/betterreadsShelf"
+    betterreadsLibraryBook:
+      type: object
+      properties:
+        authorName:
+          type: string
+        bookId:
+          type: string
+        bookImage:
+          type: string
+        rating:
+          $ref: "#/components/schemas/betterreadsBookRating"
+        shelfIds:
+          type: array
+          items:
+            type: string
+          title: Books can be on multiple shelves
+        source:
+          $ref: "#/components/schemas/betterreadsBookSource"
+        title:
+          type: string
+        addedAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        readingStatus:
+          $ref: "#/components/schemas/betterreadsReadingStatus"
+    betterreadsLikePostResponse:
+      type: object
+    betterreadsPaginationMetadata:
+      type: object
+      properties:
+        page:
+          type: integer
+          format: int32
+        limit:
+          type: integer
+          format: int32
+        total:
+          type: integer
+          format: int32
+    betterreadsPost:
+      type: object
+      properties:
+        id:
+          type: string
+        description:
+          type: string
+        book:
+          $ref: "#/components/schemas/betterreadsBookDetails"
+        likeCount:
+          type: integer
+          format: int32
+        summary:
+          type: string
+        userId:
+          type: string
+        commentCount:
+          type: integer
+          format: int32
+        createdAt:
+          type: string
+          format: date-time
+    betterreadsReadingStatus:
+      type: string
+      enum:
+        - READING_STATUS_UNSPECIFIED
+        - READING_STATUS_READ
+        - READING_STATUS_WANT_TO_READ
+        - READING_STATUS_READING
+        - READING_STATUS_DID_NOT_FINISH
+      default: READING_STATUS_UNSPECIFIED
+    betterreadsRemoveBookFromShelfResponse:
+      type: object
+    betterreadsRemoveLibraryBookResponse:
+      type: object
+    betterreadsSearchBooksResponse:
+      type: object
+      properties:
+        books:
+          type: array
+          items:
+            $ref: "#/components/schemas/betterreadsBook"
+        pagination:
+          $ref: "#/components/schemas/betterreadsPaginationMetadata"
+    betterreadsShelf:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        userId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    betterreadsShelfSortOrder:
+      type: string
+      enum:
+        - SHELF_SORT_ORDER_UNSPECIFIED
+        - SHELF_SORT_ORDER_TITLE_ASC
+        - SHELF_SORT_ORDER_TITLE_DESC
+        - SHELF_SORT_ORDER_AUTHOR_ASC
+        - SHELF_SORT_ORDER_AUTHOR_DESC
+        - SHELF_SORT_ORDER_DATE_ADDED_ASC
+        - SHELF_SORT_ORDER_DATE_ADDED_DESC
+      default: SHELF_SORT_ORDER_UNSPECIFIED
+    betterreadsShelfWithBooks:
+      type: object
+      properties:
+        shelf:
+          $ref: "#/components/schemas/betterreadsShelf"
+        books:
+          type: array
+          items:
+            $ref: "#/components/schemas/betterreadsLibraryBook"
+    betterreadsUnfollowUserResponse:
+      type: object
+    betterreadsUnlikePostResponse:
+      type: object
+    betterreadsUpdateLibraryBookRequest:
+      type: object
+      properties:
+        authorName:
+          type: string
+        bookId:
+          type: string
+        bookImage:
+          type: string
+        shelfIds:
+          type: array
+          items:
+            type: string
+          title: "Optional: Books can exist without shelves"
+        source:
+          $ref: "#/components/schemas/betterreadsBookSource"
+        title:
+          type: string
+        rating:
+          $ref: "#/components/schemas/betterreadsBookRating"
+        readingStatus:
+          $ref: "#/components/schemas/betterreadsReadingStatus"
+    betterreadsUpdateLibraryBookResponse:
+      type: object
+    betterreadsUpdatePostResponse:
+      type: object
+      properties:
+        post:
+          $ref: "#/components/schemas/betterreadsPost"
+    betterreadsUpdateShelfResponse:
+      type: object
+      properties:
+        shelf:
+          $ref: "#/components/schemas/betterreadsShelf"
+    betterreadsUpdateUserProfileRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        profilePhotoUrl:
+          type: string
+          title: URL to profile photo
+        username:
+          type: string
+    betterreadsUpdateUserProfileResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        profilePhotoUrl:
+          type: string
+          title: URL to profile photo
+        createdAt:
+          type: string
+          format: date-time
+    protobufAny:
+      type: object
+      properties:
+        "@type":
+          type: string
+      additionalProperties: {}
+    rpcStatus:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            $ref: "#/components/schemas/protobufAny"

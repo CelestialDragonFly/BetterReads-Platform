@@ -17,6 +17,18 @@ type API interface {
 	GetUserByID(ctx context.Context, id string) (*data.User, error)
 	FollowUser(ctx context.Context, followerID, followeeID string) error
 	UnfollowUser(ctx context.Context, followerID, followeeID string) error
+
+	// Library
+	CreateShelf(ctx context.Context, shelf *data.Shelf) (*data.Shelf, error)
+	UpdateShelf(ctx context.Context, shelf *data.Shelf) (*data.Shelf, error)
+	DeleteShelf(ctx context.Context, userID, id string) error
+	GetUserShelves(ctx context.Context, userID string) ([]*data.Shelf, error)
+	GetShelfBooks(ctx context.Context, userID, shelfID string) ([]*data.LibraryBook, error)
+	UpdateLibraryBook(ctx context.Context, book *data.LibraryBook) error
+	RemoveLibraryBook(ctx context.Context, userID, bookID string) error
+	GetUserLibrary(ctx context.Context, userID string) ([]*data.LibraryBook, error)
+	AddBookToShelf(ctx context.Context, userID, bookID, shelfID string) error
+	RemoveBookFromShelf(ctx context.Context, userID, bookID, shelfID string) error
 }
 
 var (
@@ -47,6 +59,7 @@ func NewClient(ctx context.Context, dsn string) (*Client, error) {
 var registers = []func(context.Context, *pgx.Conn) error{
 	registerUser,
 	registerFollows,
+	registerLibrary,
 }
 
 func migrate(ctx context.Context, db *pgx.Conn) error {
