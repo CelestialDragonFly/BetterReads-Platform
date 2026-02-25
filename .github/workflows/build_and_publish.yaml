@@ -43,29 +43,42 @@ jobs:
 
   build_and_publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: '0'
 
       - name: Set up Firebase Service Account
         run: echo "$FIREBASE_SERVICE_ACCOUNT" > firebase-serviceaccount.json
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
 
+      - name: Bump version and push tag
+        id: bump_version
+        if: github.ref == 'refs/heads/main'
+        uses: telia-actions/github-increment-version-action@V1.67.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: "true"
+
       - name: Set up Docker tag
         id: set_tag
+        env:
+          NEW_TAG: ${{ steps.bump_version.outputs.new_tag }}
+          CURRENT_TAG: ${{ steps.bump_version.outputs.tag }}
         run: |
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
           SHORT_SHA=$(git rev-parse --short HEAD)
 
           if [ "$BRANCH_NAME" = "main" ]; then
-            # Check if there's a version tag on this commit
-            VERSION_TAG=$(git tag --points-at HEAD | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)
-
-            if [ -n "$VERSION_TAG" ]; then
-              # If there's a version tag, use it
-              DOCKER_TAG="${VERSION_TAG}"
+            if [ -n "$NEW_TAG" ]; then
+              DOCKER_TAG="$NEW_TAG"
+            elif [ -n "$CURRENT_TAG" ]; then
+              DOCKER_TAG="$CURRENT_TAG"
             else
-              # If on main but no version tag, use 'latest'
               DOCKER_TAG="latest"
             fi
           else
