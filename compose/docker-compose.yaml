@@ -1,0 +1,54 @@
+services:
+  betterreads:
+    image: ghcr.io/celestialdragonfly/platform/betterreads:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+    environment:
+      # Use an environment variable for SQL_URL, or build it from variables
+      # SSL mode is disabled for local testing by default
+      - SQL_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-sqltango}@postgres:5432/${POSTGRES_DB:-betterreads}?sslmode=disable
+      # Required for Firebase authentication (mount this below)
+      - FIREBASE_SERVICE_ACCOUNT=/app/secrets/firebase-serviceaccount.json
+    env_file:
+      - .env
+    volumes:
+      # Mount the host machine's 'secrets' folder to the container as read-only
+      - ../secrets:/app/secrets:ro
+    networks:
+      - betterreads_net
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      # Bind to localhost only to prevent external access to the DB port
+      - "127.0.0.1:5432:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-admin}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-sqltango}
+      - POSTGRES_DB=${POSTGRES_DB:-betterreads}
+    volumes:
+      # Ensure data persistence across restarts
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - betterreads_net
+    healthcheck:
+      # Healthcheck ensures BetterReads waits for the DB to be ready
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-betterreads}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+networks:
+  betterreads_net:
+    driver: bridge
+
+volumes:
+  postgres_data:

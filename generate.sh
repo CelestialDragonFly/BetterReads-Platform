@@ -21,13 +21,13 @@ function generate_grpc() {
 		--go_out=generated --go_opt=paths=source_relative \
 		--go-grpc_out=generated --go-grpc_opt=paths=source_relative \
 		--grpc-gateway_out=generated --grpc-gateway_opt=paths=source_relative \
-		--openapiv2_out=. --openapiv2_opt allow_merge=true,merge_file_name=betterreads \
+		--openapiv2_out=./documentation --openapiv2_opt allow_merge=true,merge_file_name=betterreads \
 		betterreads.proto
 }
 
 function generate_openapi_from_swagger() {
-	docker run --rm -v "${PWD}":/usr/src/app mermade/swagger2openapi swagger2openapi --yaml --outfile /usr/src/app/betterreads.openapi.yaml /usr/src/app/betterreads.swagger.json
-	sudo chown "$USER":"$USER" betterreads.openapi.yaml
+	docker run --rm -v "${PWD}":/usr/src/app mermade/swagger2openapi swagger2openapi --yaml --outfile /usr/src/app/documentation/betterreads.openapi.yaml /usr/src/app/documentation/betterreads.swagger.json
+	sudo chown "$USER":"$USER" documentation/betterreads.openapi.yaml
 }
 
 generate_grpc
