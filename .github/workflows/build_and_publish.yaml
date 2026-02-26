@@ -90,16 +90,23 @@ jobs:
 
           echo "DOCKER_TAG=${DOCKER_TAG}" >> $GITHUB_ENV
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build and push the image
         run: |
           docker login --username hirdrwit --password ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }} ghcr.io
-          docker build . \
-          --build-arg FIREBASE_CONFIG="$(cat firebase-serviceaccount.json)" \
-          --tag ghcr.io/celestialdragonfly/platform/betterreads:${DOCKER_TAG}
-          docker push ghcr.io/celestialdragonfly/platform/betterreads:${DOCKER_TAG}
 
-          # Also push as 'latest' if on main branch
+          TAGS="--tag ghcr.io/celestialdragonfly/platform/betterreads:${DOCKER_TAG}"
           if [ "${GITHUB_REF#refs/heads/}" = "main" ]; then
-            docker tag ghcr.io/celestialdragonfly/platform/betterreads:${DOCKER_TAG} ghcr.io/celestialdragonfly/platform/betterreads:latest
-            docker push ghcr.io/celestialdragonfly/platform/betterreads:latest
+            TAGS="$TAGS --tag ghcr.io/celestialdragonfly/platform/betterreads:latest"
           fi
+
+          docker buildx build . \
+            --platform linux/amd64,linux/arm64 \
+            --build-arg FIREBASE_CONFIG="$(cat firebase-serviceaccount.json)" \
+            $TAGS \
+            --push
