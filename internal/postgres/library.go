@@ -320,14 +320,6 @@ func (db *Client) queryLibraryBooks(ctx context.Context, query string, args ...a
 }
 
 func registerLibrary(ctx context.Context, db *pgx.Conn) error {
-	// Migrations
-	if _, err := db.Exec(ctx, "ALTER TABLE shelves DROP COLUMN IF EXISTS is_default;"); err != nil {
-		return fmt.Errorf("failed to drop is_default from shelves: %w", err)
-	}
-	if _, err := db.Exec(ctx, "ALTER TABLE library_books ADD COLUMN IF NOT EXISTS reading_status INTEGER NOT NULL DEFAULT 1;"); err != nil {
-		return fmt.Errorf("failed to add reading_status to library_books: %w", err)
-	}
-
 	createShelvesTable := `
 	CREATE TABLE IF NOT EXISTS shelves (
 		id UUID PRIMARY KEY,
@@ -373,6 +365,14 @@ func registerLibrary(ctx context.Context, db *pgx.Conn) error {
 	`
 	if _, err := db.Exec(ctx, createShelfBooksTable); err != nil {
 		return fmt.Errorf("failed to create shelf_books table: %w", err)
+	}
+
+	// Migrations (run after table creation to ensure tables exist)
+	if _, err := db.Exec(ctx, "ALTER TABLE shelves DROP COLUMN IF EXISTS is_default;"); err != nil {
+		return fmt.Errorf("failed to drop is_default from shelves: %w", err)
+	}
+	if _, err := db.Exec(ctx, "ALTER TABLE library_books ADD COLUMN IF NOT EXISTS reading_status INTEGER NOT NULL DEFAULT 1;"); err != nil {
+		return fmt.Errorf("failed to add reading_status to library_books: %w", err)
 	}
 
 	return nil
